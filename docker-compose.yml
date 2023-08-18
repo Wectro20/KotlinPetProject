@@ -17,10 +17,12 @@ services:
     depends_on:
       - mongo
     ports:
-      - 8080:8080
+      - '8080:8080'
     environment:
       SPRING_APPLICATION_JSON: '{
             "spring.data.mongodb.database" : "cryptocurrency-price",
             "cryptocurrency.name" : "BTC,ETH,XRP",
+            "spring.data.mongodb.host" : "mongo",
+            "spring.data.mongodb.port" : "27017",
             "cryptocurrency.thread-sleep-time" : "5000"
           }'
