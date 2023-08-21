@@ -54,5 +54,4 @@ class CryptocurrencyController(private val cryptocurrencyService: Cryptocurrency
             .contentType(MediaType.parseMediaType("text/csv"))
             .body(FileSystemResource(file))
     }
-
 }
