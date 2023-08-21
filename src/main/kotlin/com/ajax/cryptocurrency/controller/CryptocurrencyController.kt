@@ -2,10 +2,12 @@ package com.ajax.cryptocurrency.controller
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
+import jakarta.validation.constraints.Min
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -13,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping()
+@RequestMapping
+@Validated
 class CryptocurrencyController(private val cryptocurrencyService: CryptocurrencyService) {
 
     @GetMapping("/findall")
@@ -34,17 +37,16 @@ class CryptocurrencyController(private val cryptocurrencyService: Cryptocurrency
     @GetMapping("/cryptocurrencies")
     fun getCryptocurrencyByPages(
         @RequestParam(required = false) name: String?,
-        @RequestParam() page: Int?,
-        @RequestParam() size: Int?
+        @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
+        @RequestParam(defaultValue = "10") @Min(1) size: Int
     ): ResponseEntity<MutableList<Cryptocurrency?>> =
-        ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, page ?: 0, size ?: 10))
+        ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))
 
     @GetMapping("/cryptocurrencies/csv")
-    fun downloadFile(@RequestParam(required = false) fileName: String?): ResponseEntity<FileSystemResource> {
-        val resolvedFileName = fileName ?: "cryptocurrency-report"
-        val file = cryptocurrencyService.writeCsv(resolvedFileName)
+    fun downloadFile(@RequestParam(defaultValue = "cryptocurrency-report") fileName: String): ResponseEntity<FileSystemResource> {
+        val file = cryptocurrencyService.writeCsv(fileName)
         val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$resolvedFileName.csv")
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")
 
         return ResponseEntity.ok()
             .headers(headers)

@@ -23,7 +23,9 @@ data class PriceSaver(
     @Value("\${cryptocurrency.thread-sleep-time}") private val threadSleepTime: Long
 ) : Runnable {
 
-    private val logger: Logger = LoggerFactory.getLogger(javaClass)
+    private companion object {
+        private val logger: Logger = LoggerFactory.getLogger(PriceSaver::class.java)
+    }
 
     override fun run() {
         logger.info("Parsing data started")
@@ -32,8 +34,8 @@ data class PriceSaver(
                 savePrices()
                 sleep(threadSleepTime)
             } catch (e: InterruptedException) {
+                logger.warn("Price saver thread was interrupted", e)
                 currentThread().interrupt()
-                e.printStackTrace()
             }
         }
     }
@@ -42,28 +44,22 @@ data class PriceSaver(
         for (cryptocurrencyName in cryptocurrencyNames) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
-            try {
+            runCatching {
                 val btcUrl = URL(url)
                 val reader = BufferedReader(InputStreamReader(btcUrl.openStream()))
-                val line = reader.readLine()
-                val jsonObject = JSONObject(line)
-                val price = jsonObject.getFloat("lprice")
+                reader.use { bufferedReader ->
+                    val line: String = bufferedReader.readLine()
+                    val jsonObject = JSONObject(line)
+                    val price: Float = jsonObject.getFloat("lprice")
 
-                val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
-                val cryptocurrency = Cryptocurrency(null, cryptocurrencyName = cryptocurrencyName, price = price, createdTime = createdTimeStamp.toLocalDateTime())
+                    val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
+                    val cryptocurrency = Cryptocurrency(null, cryptocurrencyName = cryptocurrencyName, price = price, createdTime = createdTimeStamp.toLocalDateTime())
 
-                cryptocurrencyRepository.save(cryptocurrency)
-
-                reader.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    cryptocurrencyRepository.save(cryptocurrency)
+                }
+            }.onFailure { e ->
+                logger.error("An exception occurred while saving prices", e)
             }
         }
     }
 }
-
-
-
-
-
-

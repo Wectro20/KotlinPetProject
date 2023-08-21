@@ -8,5 +8,5 @@ import org.springframework.boot.runApplication
 class CryptocurrencyApplication
 
 fun main(args: Array<String>) {
-	runApplication<CryptocurrencyApplication>(*args)
+    runApplication<CryptocurrencyApplication>(*args)
 }

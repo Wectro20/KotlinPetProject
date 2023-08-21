@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 
 @Document(collection = "statistic")
-data class Cryptocurrency (
+data class Cryptocurrency(
     @Id
     var id: String?,
     var cryptocurrencyName: String,
