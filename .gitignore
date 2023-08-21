@@ -1,8 +1,18 @@
+# Gradle generated files
+.gradle/
+build/
+
 # Compiled class file
 *.class
 
-# Log file
+# Log files
 *.log
+
+# IntelliJ IDEA files
+.idea/
+
+# Eclipse files
+.settings/
 
 # BlueJ files
 *.ctxt
