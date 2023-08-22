@@ -2,27 +2,25 @@ package com.ajax.cryptocurrency.controller;
 
 import com.ajax.cryptocurrency.CryptocurrencyApplication
 import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.io.File
 import java.time.OffsetDateTime
@@ -32,25 +30,22 @@ import java.time.ZoneOffset
 @ExtendWith(MockitoExtension::class)
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
 @WebMvcTest
-class CryptocurrencyControllerTest {
+class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>) {
 
     @Autowired
-
     private lateinit var mockMvc: MockMvc
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
+    @Autowired
+    private lateinit var cryptocurrencyController: CryptocurrencyController
+
     @MockBean
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
-    @MockBean
-    private lateinit var cryptocurrencysRepository: CryptocurrencyRepository
-
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val CSV_FILE = "./cryptocurrency-report.csv"
-
-    private val cryptocurrencyPrice = Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time)
+    private val EXPECTED_CSV_FILE = "src/test/resources/expected.csv"
 
     private val list = listOf(
         Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time),
@@ -65,14 +60,13 @@ class CryptocurrencyControllerTest {
 
     @Test
     fun getPriceTests() {
-        val cryptocurrencies = listOf("BTC", "ETH", "XRP")
-
         for (crypto in cryptocurrencies) {
+            val cryptocurrencyPrice = Cryptocurrency("63b346f12b207611fc867ff3", crypto, 12341f, time)
             val minPrice = cryptocurrencyPrice
             val maxPrice = cryptocurrencyPrice
-            Mockito.doReturn(minPrice).`when`(cryptocurrencyService)
+            doReturn(minPrice).`when`(cryptocurrencyService)
                 .findMinMaxPriceByCryptocurrencyName(crypto, 1)
-            Mockito.doReturn(maxPrice).`when`(cryptocurrencyService)
+            doReturn(maxPrice).`when`(cryptocurrencyService)
                 .findMinMaxPriceByCryptocurrencyName(crypto, -1)
 
             val minPriceJson = objectMapper.writeValueAsString(minPrice)
@@ -93,8 +87,6 @@ class CryptocurrencyControllerTest {
 
     @Test
     fun getPageTests() {
-        val cryptocurrencies = listOf("BTC", "ETH", "XRP")
-
         for (crypto in cryptocurrencies) {
             val sortedList = list.filter { it.cryptocurrencyName == crypto }
                 .sortedBy { it.price }
@@ -110,4 +102,23 @@ class CryptocurrencyControllerTest {
                 .andExpect(MockMvcResultMatchers.content().string(sortedListJson))
         }
     }
+
+    @Test
+    fun `test downloadFile method`() {
+        val fileName = "test-report"
+        val file = File(EXPECTED_CSV_FILE)
+        `when`(cryptocurrencyService.writeCsv(fileName)).thenReturn(file)
+
+        val response: ResponseEntity<FileSystemResource> = cryptocurrencyController.downloadFile(fileName)
+
+        verify(cryptocurrencyService, times(1)).writeCsv(fileName)
+
+        assert(response.headers.containsKey(HttpHeaders.CONTENT_DISPOSITION))
+        assert(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION) == "attachment; filename=$fileName.csv")
+        assert(response.headers.contentType == MediaType.parseMediaType("text/csv"))
+
+        val contentLength = response.body?.inputStream?.available()?.toLong()
+        assert(contentLength == file.length())
+    }
+
 }
