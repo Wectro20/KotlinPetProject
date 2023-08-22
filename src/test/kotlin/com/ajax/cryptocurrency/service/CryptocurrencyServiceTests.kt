@@ -18,8 +18,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
-
-@ExtendWith(MockitoExtension::class)
 @SpringBootTest(classes = [CryptocurrencyService::class])
 class CryptocurrencyServiceTests {
     @MockBean
