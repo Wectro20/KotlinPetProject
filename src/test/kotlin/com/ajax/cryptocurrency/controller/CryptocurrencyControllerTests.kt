@@ -25,7 +25,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
-@ExtendWith(MockitoExtension::class)
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
 @WebMvcTest
 class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>) {
