@@ -5,9 +5,10 @@ import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito.*
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -42,7 +43,7 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val EXPECTED_CSV_FILE = "src/test/resources/expected.csv"
+    private val expectedCsvFile = "src/test/resources/expected.csv"
 
     private val list = listOf(
         Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time),
@@ -103,7 +104,7 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
     @Test
     fun `test downloadFile method`() {
         val fileName = "test-report"
-        val file = File(EXPECTED_CSV_FILE)
+        val file = File(expectedCsvFile)
         `when`(cryptocurrencyService.writeCsv(fileName)).thenReturn(file)
 
         val response: ResponseEntity<FileSystemResource> = cryptocurrencyController.downloadFile(fileName)

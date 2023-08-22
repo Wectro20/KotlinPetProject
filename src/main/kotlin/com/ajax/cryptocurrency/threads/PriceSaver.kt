@@ -53,7 +53,11 @@ data class PriceSaver(
                     val price: Float = jsonObject.getFloat("lprice")
 
                     val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
-                    val cryptocurrency = Cryptocurrency(null, cryptocurrencyName = cryptocurrencyName, price = price, createdTime = createdTimeStamp.toLocalDateTime())
+                    val cryptocurrency = Cryptocurrency(
+                        null,
+                        cryptocurrencyName = cryptocurrencyName,
+                        price = price,
+                        createdTime = createdTimeStamp.toLocalDateTime())
 
                     cryptocurrencyRepository.save(cryptocurrency)
                 }

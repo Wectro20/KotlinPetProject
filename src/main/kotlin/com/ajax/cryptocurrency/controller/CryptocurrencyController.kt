@@ -43,7 +43,9 @@ class CryptocurrencyController(private val cryptocurrencyService: Cryptocurrency
         ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))
 
     @GetMapping("/cryptocurrencies/csv")
-    fun downloadFile(@RequestParam(defaultValue = "cryptocurrency-report") fileName: String): ResponseEntity<FileSystemResource> {
+    fun downloadFile(
+        @RequestParam(defaultValue = "cryptocurrency-report") fileName: String
+    ): ResponseEntity<FileSystemResource> {
         val file = cryptocurrencyService.writeCsv(fileName)
         val headers = HttpHeaders()
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")

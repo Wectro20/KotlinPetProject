@@ -6,6 +6,12 @@ plugins {
 	kotlin("jvm") version "1.9.0"
 	kotlin("plugin.spring") version "1.9.0"
 	kotlin("plugin.jpa") version "1.9.0"
+	id("io.gitlab.arturbosch.detekt") version "1.23.1"
+}
+
+
+repositories {
+	mavenCentral()
 }
 
 group = "com.ajax"
@@ -47,3 +53,4 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+

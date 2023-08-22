@@ -4,13 +4,15 @@ import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
-import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.data.domain.*
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -19,15 +21,15 @@ import java.time.ZoneOffset
 
 
 @SpringBootTest(classes = [CryptocurrencyService::class])
-class CryptocurrencyServiceTests {
+class CryptocurrencyServiceTest {
     @MockBean
     private lateinit var cryptocurrencyRepository: CryptocurrencyRepository
 
     @Autowired
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
-    private val EXPECTED_CSV_FILE = "src/test/resources/expected.csv"
-    private val RESULT_CSV_FILE = "./cryptocurrency-prices-test.csv"
+    private val expectedCsvFile = "src/test/resources/expected.csv"
+    private val resultCsvFile = "./cryptocurrency-prices-test.csv"
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val cryptocurrencyBTCPrice = Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time)
     private val cryptocurrencyETHPrice = Cryptocurrency("63b346f12b207611fc867ff3", "ETH", 12341f, time)
@@ -150,7 +152,7 @@ class CryptocurrencyServiceTests {
             .thenReturn(cryptocurrencyBTCPrice)
 
         val result = cryptocurrencyService.writeCsv("cryptocurrency-prices-test")
-        val actual = isEqual(Paths.get(EXPECTED_CSV_FILE), Paths.get(RESULT_CSV_FILE))
+        val actual = isEqual(Paths.get(expectedCsvFile), Paths.get(resultCsvFile))
         result.delete()
         Assertions.assertEquals(true, actual)
     }
