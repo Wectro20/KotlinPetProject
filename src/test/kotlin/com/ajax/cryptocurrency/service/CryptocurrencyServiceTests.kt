@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.domain.*
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -20,8 +18,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
-@ActiveProfiles("test")
-@ExtendWith(SpringExtension::class)
+
 @ExtendWith(MockitoExtension::class)
 @SpringBootTest(classes = [CryptocurrencyService::class])
 class CryptocurrencyServiceTests {

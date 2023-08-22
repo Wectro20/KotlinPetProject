@@ -16,7 +16,6 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -25,7 +24,7 @@ import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@ActiveProfiles("test")
+
 @ExtendWith(MockitoExtension::class)
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
 @WebMvcTest
@@ -119,5 +118,4 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
         val contentLength = response.body?.inputStream?.available()?.toLong()
         assert(contentLength == file.length())
     }
-
 }
