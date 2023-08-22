@@ -6,7 +6,6 @@ import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired
@@ -91,7 +90,7 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
             val sortedList = list.filter { it.cryptocurrencyName == crypto }
                 .sortedBy { it.price }
 
-            Mockito.doReturn(sortedList).`when`(cryptocurrencyService)
+            doReturn(sortedList).`when`(cryptocurrencyService)
                 .getCryptocurrencyPages(crypto, 0, 10)
 
             val sortedListJson = objectMapper.writeValueAsString(sortedList)

@@ -24,7 +24,7 @@ import java.time.ZoneOffset
 @ExtendWith(SpringExtension::class)
 @ExtendWith(MockitoExtension::class)
 @SpringBootTest(classes = [CryptocurrencyService::class])
-class CryptocurrencyServiceTests() {
+class CryptocurrencyServiceTests {
     @MockBean
     private lateinit var cryptocurrencyRepository: CryptocurrencyRepository
 
