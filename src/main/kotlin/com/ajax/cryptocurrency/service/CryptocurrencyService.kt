@@ -14,18 +14,13 @@ class CryptocurrencyService(private val cryptocurrencyRepository: Cryptocurrency
                             @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>) {
     fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency {
         return cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
-            ?: throw CryptocurrencyPriceNotFoundException("Price of $name cryptocurrency not found")
     }
 
     fun findAll(): List<Cryptocurrency> {
         return cryptocurrencyRepository.findAll()
     }
 
-    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): MutableList<Cryptocurrency?> {
-        if (cryptocurrencyRepository.findAll().isEmpty()) {
-            throw CryptocurrencyPriceNotFoundException("cryptocurrency prices not found")
-        }
-
+    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): List<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
         val pagedResult = if (name == null) {
             cryptocurrencyRepository.findAll(pageable)
@@ -42,8 +37,8 @@ class CryptocurrencyService(private val cryptocurrencyRepository: Cryptocurrency
             writer.append("Cryptocurrency Name,Min Price,Max Price\n")
 
             for (name in cryptocurrencies) {
-                val minPrice = cryptocurrencyRepository.findMinMaxByName(name, 1)?.price
-                val maxPrice = cryptocurrencyRepository.findMinMaxByName(name, -1)?.price
+                val minPrice = cryptocurrencyRepository.findMinMaxByName(name, 1).price
+                val maxPrice = cryptocurrencyRepository.findMinMaxByName(name, -1).price
 
                 writer.append("$name,$minPrice,$maxPrice\n")
             }

@@ -4,10 +4,12 @@ import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.InjectMocks
+import org.mockito.Mock
 import org.mockito.Mockito
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.mockito.Spy
+import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -20,12 +22,16 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
-@SpringBootTest(classes = [CryptocurrencyService::class])
-class CryptocurrencyServiceTest {
-    @MockBean
+
+@ExtendWith(MockitoExtension::class)
+class CryptocurrencyServiceTests {
+    @Mock
     private lateinit var cryptocurrencyRepository: CryptocurrencyRepository
 
-    @Autowired
+    @Spy
+    private var cryptocurrencies: List<String> = listOf("BTC","ETH","XRP")
+
+    @InjectMocks
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
     private val expectedCsvFile = "src/test/resources/expected.csv"
@@ -102,8 +108,6 @@ class CryptocurrencyServiceTest {
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable))
             .thenReturn(toPage(sortedList, page))
-        Mockito.`when`(cryptocurrencyRepository.findAll())
-            .thenReturn(cryptocurrencyList)
         val result = cryptocurrencyService.getCryptocurrencyPages("BTC", 0, 10)
         Assertions.assertEquals(sortedList, result)
     }
@@ -116,8 +120,6 @@ class CryptocurrencyServiceTest {
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable))
             .thenReturn(toPage(sortedList, page))
-        Mockito.`when`(cryptocurrencyRepository.findAll())
-            .thenReturn(cryptocurrencyList)
         val result = cryptocurrencyService.getCryptocurrencyPages("ETH", 0, 10)
         Assertions.assertEquals(sortedList, result)
     }
@@ -130,8 +132,6 @@ class CryptocurrencyServiceTest {
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable))
             .thenReturn(toPage(sortedList, page))
-        Mockito.`when`(cryptocurrencyRepository.findAll())
-            .thenReturn(sortedList)
         val result = cryptocurrencyService.getCryptocurrencyPages("XRP", 0, 10)
         Assertions.assertEquals(sortedList, result)
     }

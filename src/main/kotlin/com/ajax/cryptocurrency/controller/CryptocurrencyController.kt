@@ -39,7 +39,7 @@ class CryptocurrencyController(private val cryptocurrencyService: Cryptocurrency
         @RequestParam(required = false) name: String?,
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
-    ): ResponseEntity<MutableList<Cryptocurrency?>> =
+    ): ResponseEntity<List<Cryptocurrency?>> =
         ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))
 
     @GetMapping("/cryptocurrencies/csv")

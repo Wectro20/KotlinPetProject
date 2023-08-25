@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.Thread.currentThread
 import java.lang.Thread.sleep
+import java.util.concurrent.Executors
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -29,19 +29,28 @@ data class PriceSaver(
 
     override fun run() {
         logger.info("Parsing data started")
-        while (true) {
-            try {
-                savePrices()
-                sleep(threadSleepTime)
-            } catch (e: InterruptedException) {
-                logger.warn("Price saver thread was interrupted", e)
-                currentThread().interrupt()
+
+        val executor = Executors.newFixedThreadPool(cryptocurrencyNames.size)
+
+        try {
+            val futures = mutableListOf<java.util.concurrent.Future<*>>()
+
+            for (cryptocurrencyName in cryptocurrencyNames) {
+                logger.info("Thread started for: $cryptocurrencyName")
+                val future = executor.submit {
+                    savePrices(cryptocurrencyName)
+                }
+                futures.add(future)
             }
+
+            futures.forEach { it.get() }
+        } finally {
+            executor.shutdown()
         }
     }
 
-    private fun savePrices() {
-        for (cryptocurrencyName in cryptocurrencyNames) {
+    private fun savePrices(cryptocurrencyName: String) {
+        while (true) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
             runCatching {
@@ -64,6 +73,8 @@ data class PriceSaver(
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)
             }
+
+            sleep(threadSleepTime)
         }
     }
 }
