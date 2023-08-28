@@ -1,6 +1,5 @@
 package com.ajax.cryptocurrency.service
 
-import com.ajax.cryptocurrency.exception.CryptocurrencyPriceNotFoundException
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.springframework.beans.factory.annotation.Value

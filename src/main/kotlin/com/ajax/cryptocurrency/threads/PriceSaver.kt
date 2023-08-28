@@ -1,5 +1,6 @@
 package com.ajax.cryptocurrency.threads
 
+import com.ajax.cryptocurrency.config.SingleShotBackgroundJob
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
@@ -11,16 +12,16 @@ import org.springframework.stereotype.Component
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.Thread.sleep
-import java.util.concurrent.Executors
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-
+import java.util.concurrent.Executors
+@SingleShotBackgroundJob(startDelay = 5000, maxParallelThreads = 5)
 @Component
 data class PriceSaver(
     @Autowired private val cryptocurrencyRepository: CryptocurrencyRepository,
     @Value("\${cryptocurrency.name}") private val cryptocurrencyNames: List<String>,
-    @Value("\${cryptocurrency.thread-sleep-time}") private val threadSleepTime: Long
+    @Value("\${cryptocurrency.thread-sleep-time}") private var threadSleepTime: Long
 ) : Runnable {
 
     private companion object {
