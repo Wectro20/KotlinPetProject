@@ -6,7 +6,6 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.BufferedReader
@@ -15,13 +14,12 @@ import java.lang.Thread.sleep
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.util.concurrent.Executors
-@SingleShotBackgroundJob(startDelay = 5000, maxParallelThreads = 5)
+
+@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 30)
 @Component
 data class PriceSaver(
-    @Autowired private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("\${cryptocurrency.name}") private val cryptocurrencyNames: List<String>,
-    @Value("\${cryptocurrency.thread-sleep-time}") private var threadSleepTime: Long
+    private val cryptocurrencyRepository: CryptocurrencyRepository,
+    @Value("cryptocurrencyNames") val cryptocurrencyName: String,
 ) : Runnable {
 
     private companion object {
@@ -29,28 +27,7 @@ data class PriceSaver(
     }
 
     override fun run() {
-        logger.info("Parsing data started")
-
-        val executor = Executors.newFixedThreadPool(cryptocurrencyNames.size)
-
-        try {
-            val futures = mutableListOf<java.util.concurrent.Future<*>>()
-
-            for (cryptocurrencyName in cryptocurrencyNames) {
-                logger.info("Thread started for: $cryptocurrencyName")
-                val future = executor.submit {
-                    savePrices(cryptocurrencyName)
-                }
-                futures.add(future)
-            }
-
-            futures.forEach { it.get() }
-        } finally {
-            executor.shutdown()
-        }
-    }
-
-    private fun savePrices(cryptocurrencyName: String) {
+        println("Started parsing: $cryptocurrencyName")
         while (true) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
@@ -67,7 +44,8 @@ data class PriceSaver(
                         null,
                         cryptocurrencyName = cryptocurrencyName,
                         price = price,
-                        createdTime = createdTimeStamp.toLocalDateTime())
+                        createdTime = createdTimeStamp.toLocalDateTime()
+                    )
 
                     cryptocurrencyRepository.save(cryptocurrency)
                 }
@@ -75,7 +53,7 @@ data class PriceSaver(
                 logger.error("An exception occurred while saving prices", e)
             }
 
-            sleep(threadSleepTime)
+            sleep(5000)
         }
     }
 }
