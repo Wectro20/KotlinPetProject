@@ -1,8 +1,18 @@
+# Gradle generated files
+.gradle/
+build/
+
 # Compiled class file
 *.class
 
-# Log file
+# Log files
 *.log
+
+# IntelliJ IDEA files
+.idea/
+
+# Eclipse files
+.settings/
 
 # BlueJ files
 *.ctxt
@@ -22,3 +32,6 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Ignore macOS Finder files
+.DS_Store
