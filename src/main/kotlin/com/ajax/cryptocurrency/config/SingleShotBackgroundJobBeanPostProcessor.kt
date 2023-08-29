@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 class SingleShotBackgroundJobBeanPostProcessor(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
     @Value("\${cryptocurrency.name}") val cryptocurrencyNames: List<String>,
-    @Value("\${cryptocurrency.sleeptime}") val sleepTime: Long
+    @Value("\${cryptocurrency.sleeptime}") private val sleepTime: String
 ) : BeanPostProcessor {
 
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any {
@@ -29,13 +29,10 @@ class SingleShotBackgroundJobBeanPostProcessor(
             Executors.newScheduledThreadPool(1).schedule({
                 val executor = Executors.newFixedThreadPool(maxParallelThreads)
                 for (cryptocurrencyName in cryptocurrencyNames) {
-                    executor.submit {
-                        val priceSaver = PriceSaver(cryptocurrencyRepository)
-                        priceSaver.executor = executor
-                        priceSaver.cryptocurrencyName = cryptocurrencyName
-                        priceSaver.interval = sleepTime
-                        priceSaver.run()
-                    }
+                    val priceSaver = PriceSaver(cryptocurrencyRepository, sleepTime.toLong())
+                    priceSaver.executor = executor
+                    priceSaver.cryptocurrencyName = cryptocurrencyName
+                    executor.submit(priceSaver)
                 }
             }, startDelay, TimeUnit.MILLISECONDS)
         }

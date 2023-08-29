@@ -2,7 +2,7 @@ package com.ajax.cryptocurrency.service
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -21,13 +21,12 @@ import java.nio.file.Paths
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-
-
 @ExtendWith(MockitoExtension::class)
-class CryptocurrencyServiceTests {
+class CryptocurrencyServiceTest {
     @Mock
     private lateinit var cryptocurrencyRepository: CryptocurrencyRepository
 
+    @Suppress("UnusedPrivateProperty")
     @Spy
     private var cryptocurrencies: List<String> = listOf("BTC","ETH","XRP")
 
@@ -57,7 +56,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("BTC", 1))
             .thenReturn(cryptocurrencyBTCPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", 1)
-        Assertions.assertEquals(cryptocurrencyBTCPrice, result)
+        assertEquals(cryptocurrencyBTCPrice, result)
     }
 
     @Test
@@ -65,7 +64,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("BTC", -1))
             .thenReturn(cryptocurrencyBTCPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", -1)
-        Assertions.assertEquals(cryptocurrencyBTCPrice, result)
+        assertEquals(cryptocurrencyBTCPrice, result)
     }
 
     @Test
@@ -73,7 +72,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("ETH", -1))
             .thenReturn(cryptocurrencyETHPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", -1)
-        Assertions.assertEquals(cryptocurrencyETHPrice, result)
+        assertEquals(cryptocurrencyETHPrice, result)
     }
 
     @Test
@@ -81,7 +80,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("ETH", -1))
             .thenReturn(cryptocurrencyETHPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", -1)
-        Assertions.assertEquals(cryptocurrencyETHPrice, result)
+        assertEquals(cryptocurrencyETHPrice, result)
     }
 
     @Test
@@ -89,7 +88,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("XRP", -1))
             .thenReturn(cryptocurrencyXRPPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", -1)
-        Assertions.assertEquals(cryptocurrencyXRPPrice, result)
+        assertEquals(cryptocurrencyXRPPrice, result)
     }
 
     @Test
@@ -97,7 +96,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findMinMaxByName("XRP", -1))
             .thenReturn(cryptocurrencyXRPPrice)
         val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", -1)
-        Assertions.assertEquals(cryptocurrencyXRPPrice, result)
+        assertEquals(cryptocurrencyXRPPrice, result)
     }
 
     @Test
@@ -109,7 +108,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable))
             .thenReturn(toPage(sortedList, page))
         val result = cryptocurrencyService.getCryptocurrencyPages("BTC", 0, 10)
-        Assertions.assertEquals(sortedList, result)
+        assertEquals(sortedList, result)
     }
 
     @Test
@@ -121,7 +120,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable))
             .thenReturn(toPage(sortedList, page))
         val result = cryptocurrencyService.getCryptocurrencyPages("ETH", 0, 10)
-        Assertions.assertEquals(sortedList, result)
+        assertEquals(sortedList, result)
     }
 
     @Test
@@ -133,7 +132,7 @@ class CryptocurrencyServiceTests {
         Mockito.`when`(cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable))
             .thenReturn(toPage(sortedList, page))
         val result = cryptocurrencyService.getCryptocurrencyPages("XRP", 0, 10)
-        Assertions.assertEquals(sortedList, result)
+        assertEquals(sortedList, result)
     }
 
     @Test
@@ -154,17 +153,12 @@ class CryptocurrencyServiceTests {
         val result = cryptocurrencyService.writeCsv("cryptocurrency-prices-test")
         val actual = isEqual(Paths.get(expectedCsvFile), Paths.get(resultCsvFile))
         result.delete()
-        Assertions.assertEquals(true, actual)
+        assertEquals(true, actual)
     }
 
     private fun toPage(list: List<Cryptocurrency>, pageable: Pageable): Page<Cryptocurrency> {
-        val start = pageable.offset.toInt()
-        val end = minOf(start + pageable.pageSize, list.size)
-        return if (start > list.size) {
-            PageImpl(emptyList<Cryptocurrency>(), pageable, list.size.toLong())
-        } else {
-            PageImpl(list.subList(start, end), pageable, list.size.toLong())
-        }
+        val itemsInPage = list.drop(pageable.offset.toInt()).take(pageable.pageSize)
+        return PageImpl(itemsInPage, pageable, list.size.toLong())
     }
 
     private fun isEqual(firstFile: Path, secondFile: Path): Boolean {

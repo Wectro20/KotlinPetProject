@@ -4,6 +4,7 @@ import com.ajax.cryptocurrency.CryptocurrencyApplication
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
@@ -112,10 +113,10 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
         verify(cryptocurrencyService, times(1)).writeCsv(fileName)
 
         assert(response.headers.containsKey(HttpHeaders.CONTENT_DISPOSITION))
-        assert(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION) == "attachment; filename=$fileName.csv")
-        assert(response.headers.contentType == MediaType.parseMediaType("text/csv"))
+        assertEquals(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION), "attachment; filename=$fileName.csv")
+        assertEquals(response.headers.contentType, MediaType.parseMediaType("text/csv"))
 
         val contentLength = response.body?.inputStream?.available()?.toLong()
-        assert(contentLength == file.length())
+        assertEquals(contentLength, file.length())
     }
 }

@@ -6,6 +6,7 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
@@ -13,15 +14,13 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.ExecutorService
 
-@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 1)
-data class PriceSaver(
+@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 3)
+class PriceSaver(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
+    @Value("sleepTime") private val sleepTime: Long
 ) : Runnable {
-
     lateinit var cryptocurrencyName: String
-    var interval: Long = 1000
     lateinit var executor: ExecutorService
-
 
     private val task: Runnable = object : Runnable {
         override fun run() {
@@ -48,13 +47,13 @@ data class PriceSaver(
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)
             }
-            Thread.sleep(interval)
-            executor.submit{this.run()}
+            Thread.sleep(sleepTime)
+            executor.submit(this)
         }
     }
 
     override fun run() {
-        println("Started parsing: $cryptocurrencyName")
+        logger.info("Started parsing: $cryptocurrencyName")
         task.run()
     }
 
