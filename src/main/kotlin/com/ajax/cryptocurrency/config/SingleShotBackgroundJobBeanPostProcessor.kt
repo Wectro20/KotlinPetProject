@@ -11,8 +11,9 @@ import java.util.concurrent.TimeUnit
 @Component
 class SingleShotBackgroundJobBeanPostProcessor(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("\${cryptocurrency.name}")val cryptocurrencyNames: List<String>
-): BeanPostProcessor{
+    @Value("\${cryptocurrency.name}") val cryptocurrencyNames: List<String>,
+    @Value("\${cryptocurrency.sleeptime}") val sleepTime: Long
+) : BeanPostProcessor {
 
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any {
         return bean
@@ -24,17 +25,18 @@ class SingleShotBackgroundJobBeanPostProcessor(
         if (annotation != null) {
             val startDelay = annotation.startDelay
             val maxParallelThreads = annotation.maxParallelThreads
-            val futures = mutableListOf<java.util.concurrent.Future<*>>()
 
             Executors.newScheduledThreadPool(1).schedule({
                 val executor = Executors.newFixedThreadPool(maxParallelThreads)
                 for (cryptocurrencyName in cryptocurrencyNames) {
-                    val future = executor.submit {
-                        PriceSaver(cryptocurrencyRepository,cryptocurrencyName).run()
+                    executor.submit {
+                        val priceSaver = PriceSaver(cryptocurrencyRepository)
+                        priceSaver.executor = executor
+                        priceSaver.cryptocurrencyName = cryptocurrencyName
+                        priceSaver.interval = sleepTime
+                        priceSaver.run()
                     }
-                    futures.add(future)
                 }
-                futures.forEach { it.get() }
             }, startDelay, TimeUnit.MILLISECONDS)
         }
         return bean

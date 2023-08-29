@@ -6,29 +6,25 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.Thread.sleep
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.concurrent.ExecutorService
 
-@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 30)
-@Component
+@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 1)
 data class PriceSaver(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("cryptocurrencyNames") val cryptocurrencyName: String,
 ) : Runnable {
 
-    private companion object {
-        private val logger: Logger = LoggerFactory.getLogger(PriceSaver::class.java)
-    }
+    lateinit var cryptocurrencyName: String
+    var interval: Long = 1000
+    lateinit var executor: ExecutorService
 
-    override fun run() {
-        println("Started parsing: $cryptocurrencyName")
-        while (true) {
+
+    private val task: Runnable = object : Runnable {
+        override fun run() {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
             runCatching {
@@ -52,8 +48,17 @@ data class PriceSaver(
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)
             }
-
-            sleep(5000)
+            Thread.sleep(interval)
+            executor.submit{this.run()}
         }
+    }
+
+    override fun run() {
+        println("Started parsing: $cryptocurrencyName")
+        task.run()
+    }
+
+    private companion object {
+        private val logger: Logger = LoggerFactory.getLogger(PriceSaver::class.java)
     }
 }
