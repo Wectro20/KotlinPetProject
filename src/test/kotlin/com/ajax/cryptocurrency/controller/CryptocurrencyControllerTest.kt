@@ -113,8 +113,8 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
         verify(cryptocurrencyService, times(1)).writeCsv(fileName)
 
         assert(response.headers.containsKey(HttpHeaders.CONTENT_DISPOSITION))
-        assertEquals(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION), "attachment; filename=$fileName.csv")
-        assertEquals(response.headers.contentType, MediaType.parseMediaType("text/csv"))
+        assert(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION) == "attachment; filename=$fileName.csv")
+        assert(response.headers.contentType == MediaType.parseMediaType("text/csv"))
 
         val contentLength = response.body?.inputStream?.available()?.toLong()
         assertEquals(contentLength, file.length())

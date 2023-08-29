@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService
 @SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 3)
 class PriceSaver(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("sleepTime") private val sleepTime: Long
+    @Value("sleepTime") private val sleepTime: String
 ) : Runnable {
     lateinit var cryptocurrencyName: String
     lateinit var executor: ExecutorService
@@ -47,7 +47,7 @@ class PriceSaver(
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)
             }
-            Thread.sleep(sleepTime)
+            Thread.sleep(sleepTime.toLong())
             executor.submit(this)
         }
     }
