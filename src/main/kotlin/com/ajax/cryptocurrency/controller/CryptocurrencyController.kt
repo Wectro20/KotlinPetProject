@@ -15,34 +15,32 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping
+@RequestMapping("/cryptocurrencies")
 @Validated
 class CryptocurrencyController(private val cryptocurrencyService: CryptocurrencyService) {
 
     @GetMapping("/findall")
-    fun getAll(): ResponseEntity<List<Cryptocurrency>> {
-        return ResponseEntity.ok(cryptocurrencyService.findAll())
-    }
+    fun getAll(): ResponseEntity<List<Cryptocurrency>> =
+        ResponseEntity.ok(cryptocurrencyService.findAll())
 
-    @GetMapping("/cryptocurrencies/minprice")
+    @GetMapping("/minprice")
     fun getMinCryptocurrencyPrice(@RequestParam name: String): ResponseEntity<Cryptocurrency> =
         ResponseEntity.ok(cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, 1))
 
 
-    @GetMapping("/cryptocurrencies/maxprice")
-    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): ResponseEntity<Cryptocurrency> {
-        return ResponseEntity.ok(cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, -1))
-    }
+    @GetMapping("/maxprice")
+    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): ResponseEntity<Cryptocurrency> =
+        ResponseEntity.ok(cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, -1))
 
-    @GetMapping("/cryptocurrencies")
+    @GetMapping
     fun getCryptocurrencyByPages(
         @RequestParam(required = false) name: String?,
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
-    ): ResponseEntity<List<Cryptocurrency?>> =
+    ): ResponseEntity<List<Cryptocurrency>> =
         ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))
 
-    @GetMapping("/cryptocurrencies/csv")
+    @GetMapping("/csv")
     fun downloadFile(
         @RequestParam(defaultValue = "cryptocurrency-report") fileName: String
     ): ResponseEntity<FileSystemResource> {

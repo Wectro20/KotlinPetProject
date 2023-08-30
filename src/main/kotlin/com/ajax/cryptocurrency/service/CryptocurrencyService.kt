@@ -9,24 +9,22 @@ import org.springframework.stereotype.Service
 import java.io.File
 
 @Service
-class CryptocurrencyService(private val cryptocurrencyRepository: CryptocurrencyRepository,
-                            @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>) {
-    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency {
-        return cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
-    }
+class CryptocurrencyService(
+    private val cryptocurrencyRepository: CryptocurrencyRepository,
+    @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>
+) {
+    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency =
+        cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    fun findAll(): List<Cryptocurrency> {
-        return cryptocurrencyRepository.findAll()
-    }
+    fun findAll(): List<Cryptocurrency> = cryptocurrencyRepository.findAll()
 
     fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): List<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
-        val pagedResult = if (name == null) {
-            cryptocurrencyRepository.findAll(pageable)
-        } else {
-            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable)
+        return if (name == null)
+            cryptocurrencyRepository.findAll(pageable).content
+        else {
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable).content
         }
-        return pagedResult.content
     }
 
     fun writeCsv(fileName: String): File {

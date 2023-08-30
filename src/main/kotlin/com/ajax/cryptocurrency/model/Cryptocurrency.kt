@@ -12,4 +12,3 @@ data class Cryptocurrency(
     var price: Float,
     var createdTime: LocalDateTime
 )
-

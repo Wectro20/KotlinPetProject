@@ -1,4 +1,4 @@
-package com.ajax.cryptocurrency.config
+package com.ajax.cryptocurrency.annotation
 
 import org.springframework.stereotype.Component
 
