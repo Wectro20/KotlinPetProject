@@ -37,6 +37,7 @@ dependencies {
 	implementation("org.json:json:20230227")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("io.mockk:mockk:1.12.0")
 	implementation ("org.springframework.boot:spring-boot-starter-validation")
 	testImplementation ("org.junit.jupiter:junit-jupiter-api:5.8.1")
 	testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.8.1")
@@ -53,4 +54,3 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
-
