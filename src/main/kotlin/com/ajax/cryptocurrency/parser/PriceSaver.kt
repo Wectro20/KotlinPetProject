@@ -12,41 +12,44 @@ import java.io.InputStreamReader
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 @SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 3)
 class PriceSaver(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
     @Value("sleepTime") private val sleepTime: String
-) : Runnable {
+) {
     lateinit var cryptocurrencyName: String
-    lateinit var executor: ExecutorService
-    override fun run() {
-        val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
+    lateinit var scheduler: ScheduledExecutorService
+    var startDelay: Long = 0
 
-        runCatching {
-            val btcUrl = URL(url)
-            val reader = BufferedReader(InputStreamReader(btcUrl.openStream()))
-            reader.use { bufferedReader ->
-                val line: String = bufferedReader.readLine()
-                val jsonObject = JSONObject(line)
-                val price: Float = jsonObject.getFloat("lprice")
+    val task: Runnable = object : Runnable {
+        override fun run() {
+            val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
-                val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
-                val cryptocurrency = Cryptocurrency(
-                    null,
-                    cryptocurrencyName = cryptocurrencyName,
-                    price = price,
-                    createdTime = createdTimeStamp.toLocalDateTime()
-                )
+            runCatching {
+                val btcUrl = URL(url)
+                val reader = BufferedReader(InputStreamReader(btcUrl.openStream()))
+                reader.use { bufferedReader ->
+                    val line: String = bufferedReader.readLine()
+                    val jsonObject = JSONObject(line)
+                    val price: Float = jsonObject.getFloat("lprice")
 
-                cryptocurrencyRepository.save(cryptocurrency)
+                    val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
+                    val cryptocurrency = Cryptocurrency(
+                        null,
+                        cryptocurrencyName = cryptocurrencyName,
+                        price = price,
+                        createdTime = createdTimeStamp.toLocalDateTime()
+                    )
+
+                    cryptocurrencyRepository.save(cryptocurrency)
+                }
+            }.onFailure { e ->
+                logger.error("An exception occurred while saving prices", e)
             }
-        }.onFailure { e ->
-            logger.error("An exception occurred while saving prices", e)
-        }
-        Thread.sleep(sleepTime.toLong())
-        executor.submit(this)
+            scheduler.schedule(this, sleepTime.toLong(), TimeUnit.MILLISECONDS)}
     }
 
     private companion object {

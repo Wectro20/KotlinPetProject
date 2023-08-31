@@ -28,18 +28,18 @@ class SingleShotBackgroundJobBeanPostProcessor(
         if (annotation != null) {
             val startDelay = annotation.startDelay
             val maxParallelThreads = annotation.maxParallelThreads
-            val executor = Executors.newFixedThreadPool(maxParallelThreads)
+            val scheduler = Executors.newScheduledThreadPool(maxParallelThreads)
 
-            Executors.newScheduledThreadPool(1).schedule({
-
+            scheduler.schedule({
                 for (cryptocurrencyName in cryptocurrencyNames) {
                     val priceSaver = PriceSaver(cryptocurrencyRepository, sleepTime)
-                    priceSaver.executor = executor
+                    priceSaver.scheduler = scheduler
                     priceSaver.cryptocurrencyName = cryptocurrencyName
-                    executor.submit(priceSaver)
-                    logger.info("Started parsing: $cryptocurrencyName")
+                    priceSaver.startDelay = startDelay
+                    priceSaver.task.run()
                 }
             }, startDelay, TimeUnit.MILLISECONDS)
+            cryptocurrencyNames.forEach { logger.info("Started parsing: {}", it) }
         }
         return bean
     }
