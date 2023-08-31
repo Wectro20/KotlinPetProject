@@ -4,16 +4,16 @@ import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockkConstructor
-import org.apache.coyote.http11.Constants.a
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.springframework.data.domain.*
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -100,7 +100,8 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable)} returns toPage(sortedList, page)
+        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable)
+        } returns toPage(sortedList, page)
         val result = cryptocurrencyService.getCryptocurrencyPages("BTC", 0, 10)
         assertEquals(sortedList, result)
     }
@@ -111,7 +112,8 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable)} returns toPage(sortedList, page)
+        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable)
+        } returns toPage(sortedList, page)
         val result = cryptocurrencyService.getCryptocurrencyPages("ETH", 0, 10)
         assertEquals(sortedList, result)
     }
@@ -122,7 +124,8 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable)} returns toPage(sortedList, page)
+        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable)
+        } returns toPage(sortedList, page)
         val result = cryptocurrencyService.getCryptocurrencyPages("XRP", 0, 10)
         assertEquals(sortedList, result)
     }
