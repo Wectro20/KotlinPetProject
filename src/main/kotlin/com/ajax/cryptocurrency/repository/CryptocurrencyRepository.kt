@@ -14,7 +14,7 @@ interface CryptocurrencyRepository : MongoRepository<Cryptocurrency, String> {
                             "{ '\$sort' : { 'price' : ?1} }",
                             "{ '\$limit' : 1 }"
     ])
-    fun findMinMaxByName(cryptocurrencyName: String, sort: Int): Cryptocurrency?
+    fun findMinMaxByName(cryptocurrencyName: String, sort: Int): Cryptocurrency
 
     fun findCryptocurrencyPriceByCryptocurrencyName(name: String, pageable: Pageable): Page<Cryptocurrency>
 }
