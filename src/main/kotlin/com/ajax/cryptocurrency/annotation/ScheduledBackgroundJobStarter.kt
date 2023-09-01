@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 @Component
-annotation class SingleShotBackgroundJob (
+annotation class ScheduledBackgroundJobStarter (
     val startDelay: Long = 0,
-    val maxParallelThreads: Int = 1
+    val period: Long = 0
 )

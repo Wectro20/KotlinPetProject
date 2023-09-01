@@ -1,31 +1,23 @@
 package com.ajax.cryptocurrency.parser
 
-import com.ajax.cryptocurrency.annotation.SingleShotBackgroundJob
+import com.ajax.cryptocurrency.annotation.ScheduledBackgroundJobStarter
 import com.ajax.cryptocurrency.model.Cryptocurrency
+import com.ajax.cryptocurrency.parser.interfaces.ParserInterface
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 
-@SingleShotBackgroundJob(startDelay = 1000, maxParallelThreads = 3)
-class PriceSaver(
-    private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("sleepTime") private val sleepTime: String
-) {
-    lateinit var cryptocurrencyName: String
-    lateinit var scheduler: ScheduledExecutorService
-    var startDelay: Long = 0
+@ScheduledBackgroundJobStarter(startDelay = 1000, period = 5000)
+class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): ParserInterface {
 
-    val task: Runnable = object : Runnable {
-        override fun run() {
+    override fun priceSaver(cryptocurrencyName: String) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
             runCatching {
@@ -38,7 +30,6 @@ class PriceSaver(
 
                     val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
                     val cryptocurrency = Cryptocurrency(
-                        null,
                         cryptocurrencyName = cryptocurrencyName,
                         price = price,
                         createdTime = createdTimeStamp.toLocalDateTime()
@@ -49,10 +40,9 @@ class PriceSaver(
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)
             }
-            scheduler.schedule(this, sleepTime.toLong(), TimeUnit.MILLISECONDS)}
-    }
+        }
 
     private companion object {
-        private val logger: Logger = LoggerFactory.getLogger(PriceSaver::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(Parser::class.java)
     }
 }
