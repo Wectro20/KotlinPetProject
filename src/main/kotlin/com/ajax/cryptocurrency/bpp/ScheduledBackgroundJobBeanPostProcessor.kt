@@ -2,6 +2,7 @@ package com.ajax.cryptocurrency.bpp
 
 import com.ajax.cryptocurrency.annotation.ScheduledBackgroundJobStarter
 import com.ajax.cryptocurrency.parser.interfaces.ParserInterface
+import jakarta.annotation.PreDestroy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +17,7 @@ class ScheduledBackgroundJobBeanPostProcessor(
     @Value("\${cryptocurrency.name}") val cryptocurrencyNames: List<String>,
 ) : BeanPostProcessor {
     private val beans = mutableMapOf<String, KClass<*>>()
+    private val scheduler = Executors.newScheduledThreadPool(cryptocurrencyNames.size)
 
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
         val beanClass = bean::class
@@ -29,11 +31,10 @@ class ScheduledBackgroundJobBeanPostProcessor(
         val originalBean = beans[beanName]
         if (originalBean != null) {
             val annotation = originalBean.java.getAnnotation(ScheduledBackgroundJobStarter::class.java)
-            val scheduler = Executors.newScheduledThreadPool(cryptocurrencyNames.size)
 
             cryptocurrencyNames.forEach { cryptocurrencyName ->
                 scheduler.scheduleAtFixedRate(
-                    { (bean as ParserInterface).priceSaver(cryptocurrencyName) },
+                    { (bean as ParserInterface).savePrices(cryptocurrencyName) },
                     annotation.startDelay, annotation.period, TimeUnit.MILLISECONDS
                 )
             }
@@ -41,6 +42,11 @@ class ScheduledBackgroundJobBeanPostProcessor(
         }
 
         return bean
+    }
+
+    @PreDestroy
+    private fun shutdown() {
+        scheduler.shutdownNow()
     }
 
     private companion object {

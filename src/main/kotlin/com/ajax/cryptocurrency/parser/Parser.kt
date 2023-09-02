@@ -17,7 +17,7 @@ import java.time.ZoneOffset
 @ScheduledBackgroundJobStarter(startDelay = 1000, period = 5000)
 class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): ParserInterface {
 
-    override fun priceSaver(cryptocurrencyName: String) {
+    override fun savePrices(cryptocurrencyName: String) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
 
             runCatching {
