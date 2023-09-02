@@ -12,16 +12,16 @@ class ApplicationExceptionHandler {
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ExceptionHandler(CryptocurrencyPriceNotFoundException::class)
     fun handleCryptocurrencyPriceNotFoundException(e: CryptocurrencyPriceNotFoundException): ErrorResponse =
-        ErrorResponse(HttpStatus.NOT_FOUND, e.message)
+        ErrorResponse(HttpStatus.NOT_FOUND, e.message ?: "Cryptocurrency price not found.")
 
     @ResponseBody
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidParamsForThePageException::class)
     fun handleInvalidParamsForThePageException(e: InvalidParamsForThePageException): ErrorResponse =
-        ErrorResponse(HttpStatus.BAD_REQUEST, e.message)
+        ErrorResponse(HttpStatus.BAD_REQUEST, e.message ?: "Invalid params for the page")
 
     data class ErrorResponse (
         private val errorCode: HttpStatus,
-        private val errorMessage: String?
+        private val errorMessage: String
     )
 }

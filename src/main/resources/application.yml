@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      database: cryptocurrency-price
+      host: localhost
+      port: 27017
+cryptocurrency:
+  name: BTC,ETH,XRP
+  sleepTime: 5000
