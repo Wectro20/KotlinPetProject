@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 @Document(collection = "statistic")
 data class Cryptocurrency(
     @Id
-    var id: String?,
+    var id: ObjectId = ObjectId(),
     var cryptocurrencyName: String,
     var price: Float,
     var createdTime: LocalDateTime

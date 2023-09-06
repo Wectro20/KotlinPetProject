@@ -5,6 +5,7 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,22 +30,23 @@ class CryptocurrencyServiceTest {
 
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
+    private val objectId = ObjectId("63b346f12b207611fc867ff3")
     private val expectedCsvFile = "src/test/resources/expected.csv"
     private val resultCsvFile = "./cryptocurrency-prices-test.csv"
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val cryptocurrencyBTCPrice = Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time)
-    private val cryptocurrencyETHPrice = Cryptocurrency("63b346f12b207611fc867ff3", "ETH", 12341f, time)
-    private val cryptocurrencyXRPPrice = Cryptocurrency("63b346f12b207611fc867ff3", "XRP", 12341f, time)
+    private val cryptocurrencyBTCPrice = Cryptocurrency(objectId, "BTC", 12341f, time)
+    private val cryptocurrencyETHPrice = Cryptocurrency(objectId, "ETH", 12341f, time)
+    private val cryptocurrencyXRPPrice = Cryptocurrency(objectId, "XRP", 12341f, time)
 
     private val cryptocurrencyList = listOf(
-        Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time),
-        Cryptocurrency("63b346f12b20761zx5ft7ff3", "BTC", 23455f, time),
-        Cryptocurrency("63b346f12b207611fc867ff3", "ETH", 1200f, time),
-        Cryptocurrency("63b346f125106611fc867ff3", "ETH", 1300f, time),
-        Cryptocurrency("63b346gt2b26544564t67ff3", "ETH", 1400f, time),
-        Cryptocurrency("63b3z35de2b207611fc86ff3", "XRP", 200f, time),
-        Cryptocurrency("63b346f12b207611fc789ff3", "XRP", 300f, time),
-        Cryptocurrency("63b34kl42b207611fc867ff3", "XRP", 520f, time)
+        Cryptocurrency(objectId, "BTC", 12341f, time),
+        Cryptocurrency(objectId, "BTC", 23455f, time),
+        Cryptocurrency(objectId, "ETH", 1200f, time),
+        Cryptocurrency(objectId, "ETH", 1300f, time),
+        Cryptocurrency(objectId, "ETH", 1400f, time),
+        Cryptocurrency(objectId, "XRP", 200f, time),
+        Cryptocurrency(objectId, "XRP", 300f, time),
+        Cryptocurrency(objectId, "XRP", 520f, time)
     )
 
     @BeforeEach

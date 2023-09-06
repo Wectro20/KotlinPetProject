@@ -4,6 +4,7 @@ import com.ajax.cryptocurrency.CryptocurrencyApplication
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
@@ -43,24 +44,25 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
     @MockBean
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
+    private val objectId = ObjectId("63b346f12b207611fc867ff3")
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val expectedCsvFile = "src/test/resources/expected.csv"
 
     private val list = listOf(
-        Cryptocurrency("63b346f12b207611fc867ff3", "BTC", 12341f, time),
-        Cryptocurrency("63b346f12b20761zx5ft7ff3", "BTC", 23455f, time),
-        Cryptocurrency("63b346f12b207611fc867ff3", "ETH", 1200f, time),
-        Cryptocurrency("63b346f125106611fc867ff3", "ETH", 1300f, time),
-        Cryptocurrency("63b346gt2b26544564t67ff3", "ETH", 1400f, time),
-        Cryptocurrency("63b3z35de2b207611fc867ff3", "XRP", 200f, time),
-        Cryptocurrency("63b346f12b207611fc789ff3", "XRP", 300f, time),
-        Cryptocurrency("63b34kl42b207611fc867ff3", "XRP", 520f, time)
+        Cryptocurrency(objectId, "BTC", 12341f, time),
+        Cryptocurrency(objectId, "BTC", 23455f, time),
+        Cryptocurrency(objectId, "ETH", 1200f, time),
+        Cryptocurrency(objectId, "ETH", 1300f, time),
+        Cryptocurrency(objectId, "ETH", 1400f, time),
+        Cryptocurrency(objectId, "XRP", 200f, time),
+        Cryptocurrency(objectId, "XRP", 300f, time),
+        Cryptocurrency(objectId, "XRP", 520f, time)
     )
 
     @Test
     fun getPriceTests() {
         for (crypto in cryptocurrencies) {
-            val cryptocurrencyPrice = Cryptocurrency("63b346f12b207611fc867ff3", crypto, 12341f, time)
+            val cryptocurrencyPrice = Cryptocurrency(objectId, crypto, 12341f, time)
             val minPrice = cryptocurrencyPrice
             val maxPrice = cryptocurrencyPrice
             doReturn(minPrice).`when`(cryptocurrencyService)
