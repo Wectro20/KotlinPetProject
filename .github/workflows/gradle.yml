@@ -2,9 +2,11 @@ name: BUILD
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -24,7 +26,7 @@ jobs:
       - name: Run detekt with Gradle Wrapper
         run: ./gradlew detekt
       - name: Run build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew build -m
       - name: Run tests with Gradle Wrapper
         run: ./gradlew test
 

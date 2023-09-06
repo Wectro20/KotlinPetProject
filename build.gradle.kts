@@ -6,7 +6,6 @@ plugins {
 	id("io.gitlab.arturbosch.detekt").version("1.23.1")
 	kotlin("jvm") version "1.9.0"
 	kotlin("plugin.spring") version "1.9.0"
-	kotlin("plugin.jpa") version "1.9.0"
 }
 
 group = "com.ajax"
