@@ -44,6 +44,7 @@ class ScheduledBackgroundJobBeanPostProcessor(
         return bean
     }
 
+    @Suppress("UnusedPrivateMember")
     @PreDestroy
     private fun shutdown() {
         scheduler.shutdownNow()
