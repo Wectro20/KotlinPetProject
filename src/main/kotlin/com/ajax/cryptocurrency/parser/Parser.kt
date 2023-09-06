@@ -30,6 +30,7 @@ class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): Pa
 
                     val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
                     val cryptocurrency = Cryptocurrency(
+                        null,
                         cryptocurrencyName = cryptocurrencyName,
                         price = price,
                         createdTime = createdTimeStamp.toLocalDateTime()
