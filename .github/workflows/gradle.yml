@@ -26,7 +26,7 @@ jobs:
       - name: Run detekt with Gradle Wrapper
         run: ./gradlew detekt
       - name: Run build with Gradle Wrapper
-        run: ./gradlew build -m
+        run: ./gradlew build
       - name: Run tests with Gradle Wrapper
         run: ./gradlew test
 
