@@ -45,7 +45,7 @@ class ScheduledBackgroundJobBeanPostProcessor(
     }
 
     @PreDestroy
-    private fun shutdown() {
+    internal fun shutdown() {
         scheduler.shutdownNow()
     }
 
