@@ -23,11 +23,5 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Run detekt with Gradle Wrapper
-        run: ./gradlew detekt
       - name: Run build with Gradle Wrapper
         run: ./gradlew build
-      - name: Run tests with Gradle Wrapper
-        run: ./gradlew test
-
-
