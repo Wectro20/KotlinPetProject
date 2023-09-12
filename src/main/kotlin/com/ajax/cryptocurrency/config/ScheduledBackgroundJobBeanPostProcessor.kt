@@ -1,4 +1,4 @@
-package com.ajax.cryptocurrency.bpp
+package com.ajax.cryptocurrency.config
 
 import com.ajax.cryptocurrency.annotation.ScheduledBackgroundJobStarter
 import com.ajax.cryptocurrency.parser.interfaces.ParserInterface

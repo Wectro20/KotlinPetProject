@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+message Cryptocurrency {
+  string cryptocurrencyName = 1;
+  float price = 2;
+  google.protobuf.Timestamp createdTime = 3;
+}
+
+message CryptocurrencyList {
+  repeated Cryptocurrency cryptocurrency = 1;
+}
+
+message CryptocurrencyName {
+  string name = 1;
+}
+
+message CryptocurrencyPage {
+  string name = 1;
+  int32 pageNumber = 2;
+  int32 pageSize = 3;
+}
+
+message CryptocurrencyRequest{
+  oneof request {
+    CryptocurrencyName name = 1;
+    CryptocurrencyPage page = 2;
+  }
+}
+
+message CryptocurrencyFile{
+  bytes file = 1;
+}
+
+message CryptocurrencyResponse{
+  oneof response{
+    Cryptocurrency cryptocurrency = 1;
+    CryptocurrencyList cryptocurrencyList = 2;
+    CryptocurrencyFile file = 3;
+  }
+}
