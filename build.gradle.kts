@@ -59,10 +59,12 @@ subprojects {
 	repositories {
 		mavenCentral()
 	}
+
 	dependencies{
 		implementation("com.google.protobuf:protobuf-java:3.24.2")
 		implementation("com.google.protobuf:protobuf-java-util:3.20.1")
 	}
+
 	java {
 		sourceCompatibility = JavaVersion.VERSION_17
 	}
