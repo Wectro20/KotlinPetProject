@@ -55,23 +55,23 @@ tasks.withType<Test> {
 }
 
 subprojects {
-	apply(plugin = "kotlin")
-	repositories {
-		mavenCentral()
-	}
+    apply(plugin = "kotlin")
+    repositories {
+        mavenCentral()
+    }
 
-	dependencies{
-		implementation("com.google.protobuf:protobuf-java:3.24.2")
-		implementation("com.google.protobuf:protobuf-java-util:3.20.1")
-	}
+    dependencies{
+        implementation("com.google.protobuf:protobuf-java:3.24.2")
+        implementation("com.google.protobuf:protobuf-java-util:3.20.1")
+    }
 
-	java {
-		sourceCompatibility = JavaVersion.VERSION_17
-	}
-	tasks.withType<KotlinCompile> {
-		kotlinOptions {
-			freeCompilerArgs += "-Xjsr305=strict"
-			jvmTarget = "17"
-		}
-	}
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs += "-Xjsr305=strict"
+            jvmTarget = "17"
+        }
+    }
 }
