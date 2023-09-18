@@ -1,6 +1,4 @@
 rootProject.name = "cryptocurrency"
 
-include(
-    "nats-api"
-)
+include("nats-api")
 
