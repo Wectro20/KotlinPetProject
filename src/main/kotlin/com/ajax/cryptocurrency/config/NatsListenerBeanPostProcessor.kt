@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class NatsListenerBeanPostProcessor : BeanPostProcessor {
-    override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any {
+    override fun postProcessAfterInitialization(bean: Any, beanName: String): Any {
         if (bean is NatsController<*, *>) {
-            bean.initializeNatsController()
+            bean.initialize()
         }
         return bean
     }
 
     private fun <ReqT : GeneratedMessageV3, RepT : GeneratedMessageV3> NatsController<ReqT, RepT>
-            .initializeNatsController() {
+            .initialize() {
         connection.createDispatcher { message ->
             val parsedData = parser.parseFrom(message.data)
             val response = handler(parsedData)

@@ -62,7 +62,7 @@ class CryptocurrencyControllerTest {
     @Test
     fun getPriceTests() {
         for (crypto in cryptocurrencies) {
-            val cryptocurrencyPrice = Cryptocurrency(ObjectId("63b346f12b207611fc867ff3"), crypto, 12341f, time)
+            val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
             val minPrice = cryptocurrencyPrice
             val maxPrice = cryptocurrencyPrice
             doReturn(minPrice).`when`(cryptocurrencyService)

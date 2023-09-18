@@ -1,8 +1,8 @@
 package com.ajax.cryptocurrency.nats
 
-import CryptocurrencyOuterClass.CryptocurrencyResponse
-import CryptocurrencyOuterClass.CryptocurrencyRequest
-import CryptocurrencyOuterClass.CryptocurrencyList
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyList
 import com.ajax.cryptocurrency.NatsSubject.GET_ALL_CRYPTOCURRENCIES_SUBJECT
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
@@ -16,7 +16,9 @@ class NatsCryptocurrencyGetAllController (
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     override val connection: Connection
 ) : NatsController<CryptocurrencyRequest, CryptocurrencyResponse> {
+
     override val subject: String = GET_ALL_CRYPTOCURRENCIES_SUBJECT
+
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {

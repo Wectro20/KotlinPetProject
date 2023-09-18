@@ -1,6 +1,6 @@
 package com.ajax.cryptocurrency.service.convertproto
 
-import CryptocurrencyOuterClass
+import cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import org.springframework.stereotype.Component
 

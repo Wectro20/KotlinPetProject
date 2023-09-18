@@ -1,7 +1,7 @@
 package com.ajax.cryptocurrency.nats
 
-import CryptocurrencyOuterClass.CryptocurrencyResponse
-import CryptocurrencyOuterClass.CryptocurrencyRequest
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.NatsSubject.GET_MAX_CRYPTOCURRENCY_PRICE_SUBJECT
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
@@ -15,6 +15,7 @@ class NatsCryptocurrencyGetMaxPriceController (
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     override val connection: Connection
 ) : NatsController<CryptocurrencyRequest, CryptocurrencyResponse>  {
+
     override val subject: String = GET_MAX_CRYPTOCURRENCY_PRICE_SUBJECT
 
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
