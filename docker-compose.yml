@@ -8,6 +8,12 @@ services:
     volumes:
       - ./data/mongodb:/files/new_data/db
 
+  nats:
+    image: nats
+    container_name: nats
+    ports:
+      - "4222:4222"
+
   app:
     build:
       context: .

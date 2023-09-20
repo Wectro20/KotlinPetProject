@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+
 @RestController
 @RequestMapping("/cryptocurrencies")
 @Validated
@@ -36,8 +37,8 @@ class CryptocurrencyController(private val cryptocurrencyService: Cryptocurrency
         @RequestParam(required = false) name: String?,
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
-    ): ResponseEntity<List<Cryptocurrency>> =
-        ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))
+    ): ResponseEntity<List<Cryptocurrency>> {
+        return ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))}
 
     @GetMapping("/csv")
     fun downloadFile(

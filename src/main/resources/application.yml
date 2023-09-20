@@ -7,3 +7,7 @@ spring:
 cryptocurrency:
   name: BTC,ETH,XRP
   sleepTime: 5000
+
+nats:
+  connection:
+    url: nats://localhost:4222

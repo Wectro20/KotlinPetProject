@@ -12,7 +12,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.FileSystemResource
@@ -30,7 +29,8 @@ import java.time.ZoneOffset
 
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
 @WebMvcTest
-class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>) {
+class CryptocurrencyControllerTest {
+    private val cryptocurrencies: List<String> = listOf("BTC", "ETH", "XRP")
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -44,25 +44,25 @@ class CryptocurrencyControllerTest(@Value("\${cryptocurrency.name}") private val
     @MockBean
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
-    private val objectId = ObjectId("63b346f12b207611fc867ff3")
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val expectedCsvFile = "src/test/resources/expected.csv"
+    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
 
     private val list = listOf(
-        Cryptocurrency(objectId, "BTC", 12341f, time),
-        Cryptocurrency(objectId, "BTC", 23455f, time),
-        Cryptocurrency(objectId, "ETH", 1200f, time),
-        Cryptocurrency(objectId, "ETH", 1300f, time),
-        Cryptocurrency(objectId, "ETH", 1400f, time),
-        Cryptocurrency(objectId, "XRP", 200f, time),
-        Cryptocurrency(objectId, "XRP", 300f, time),
-        Cryptocurrency(objectId, "XRP", 520f, time)
+        Cryptocurrency(id, "BTC", 12341f, time),
+        Cryptocurrency(id, "BTC", 23455f, time),
+        Cryptocurrency(id, "ETH", 1200f, time),
+        Cryptocurrency(id, "ETH", 1300f, time),
+        Cryptocurrency(id, "ETH", 1400f, time),
+        Cryptocurrency(id, "XRP", 200f, time),
+        Cryptocurrency(id, "XRP", 300f, time),
+        Cryptocurrency(id, "XRP", 520f, time)
     )
 
     @Test
     fun getPriceTests() {
         for (crypto in cryptocurrencies) {
-            val cryptocurrencyPrice = Cryptocurrency(objectId, crypto, 12341f, time)
+            val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
             val minPrice = cryptocurrencyPrice
             val maxPrice = cryptocurrencyPrice
             doReturn(minPrice).`when`(cryptocurrencyService)

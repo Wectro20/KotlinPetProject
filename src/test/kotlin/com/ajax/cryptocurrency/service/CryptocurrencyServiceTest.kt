@@ -30,23 +30,23 @@ class CryptocurrencyServiceTest {
 
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
-    private val objectId = ObjectId("63b346f12b207611fc867ff3")
     private val expectedCsvFile = "src/test/resources/expected.csv"
     private val resultCsvFile = "./cryptocurrency-prices-test.csv"
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val cryptocurrencyBTCPrice = Cryptocurrency(objectId, "BTC", 12341f, time)
-    private val cryptocurrencyETHPrice = Cryptocurrency(objectId, "ETH", 12341f, time)
-    private val cryptocurrencyXRPPrice = Cryptocurrency(objectId, "XRP", 12341f, time)
+    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
+    private val cryptocurrencyBTCPrice = Cryptocurrency(id, "BTC", 12341f, time)
+    private val cryptocurrencyETHPrice = Cryptocurrency(id, "ETH", 12341f, time)
+    private val cryptocurrencyXRPPrice = Cryptocurrency(id, "XRP", 12341f, time)
 
     private val cryptocurrencyList = listOf(
-        Cryptocurrency(objectId, "BTC", 12341f, time),
-        Cryptocurrency(objectId, "BTC", 23455f, time),
-        Cryptocurrency(objectId, "ETH", 1200f, time),
-        Cryptocurrency(objectId, "ETH", 1300f, time),
-        Cryptocurrency(objectId, "ETH", 1400f, time),
-        Cryptocurrency(objectId, "XRP", 200f, time),
-        Cryptocurrency(objectId, "XRP", 300f, time),
-        Cryptocurrency(objectId, "XRP", 520f, time)
+        Cryptocurrency(id, "BTC", 12341f, time),
+        Cryptocurrency(id, "BTC", 23455f, time),
+        Cryptocurrency(id, "ETH", 1200f, time),
+        Cryptocurrency(id, "ETH", 1300f, time),
+        Cryptocurrency(id, "ETH", 1400f, time),
+        Cryptocurrency(id, "XRP", 200f, time),
+        Cryptocurrency(id, "XRP", 300f, time),
+        Cryptocurrency(id, "XRP", 520f, time)
     )
 
     @BeforeEach

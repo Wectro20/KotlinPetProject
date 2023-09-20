@@ -7,17 +7,19 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.io.File
-import java.util.concurrent.Executors
 
 @Service
 class CryptocurrencyService(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
-    @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>
+    @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>,
+
 ) {
     fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency =
         cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    fun findAll(): List<Cryptocurrency> = cryptocurrencyRepository.findAll()
+    fun findAll(): List<Cryptocurrency> {
+        return cryptocurrencyRepository.findAll()
+    }
 
     fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): List<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
