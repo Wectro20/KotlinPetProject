@@ -23,7 +23,7 @@ class NatsCryptocurrencyGetCsvController(
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
         val cryptocurrencyFile = cryptocurrencyService.writeCsv(request.name.name)
 
-        val fileBytes = ByteString.copyFrom(cryptocurrencyFile.readBytes())
+        val fileBytes = ByteString.copyFrom(cryptocurrencyFile.map { file -> file.readBytes() }.block())
 
         val cryptocurrencyResponse = CryptocurrencyFile.newBuilder().setFile(fileBytes)
 

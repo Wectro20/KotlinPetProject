@@ -50,7 +50,7 @@ class NatsCryptocurrencyGetAllControllerTest {
     fun testHandler() {
         val request = CryptocurrencyRequest.newBuilder().build()
 
-        every { cryptocurrencyService.findAll() } returns cryptocurrencyList
+        every { cryptocurrencyService.findAll().collectList().block() } returns cryptocurrencyList
 
         cryptocurrencyList.forEach { crypto ->
             every {
@@ -66,7 +66,7 @@ class NatsCryptocurrencyGetAllControllerTest {
             cryptoListFromResponse.map { it.cryptocurrencyName })
         assertEquals(cryptocurrencyList.map { it.price }, cryptoListFromResponse.map { it.price })
         assertEquals(cryptocurrencyList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
-        verify { cryptocurrencyService.findAll() }
+        verify { cryptocurrencyService.findAll().collectList().block() }
 
         cryptocurrencyList.forEach { crypto ->
             verify {

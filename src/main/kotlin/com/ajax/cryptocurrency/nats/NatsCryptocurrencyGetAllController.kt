@@ -22,7 +22,7 @@ class NatsCryptocurrencyGetAllController (
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
-        val allCryptocurrency = cryptocurrencyService.findAll()
+        val allCryptocurrency = cryptocurrencyService.findAll().collectList().block()!!
             .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
 
         val list = CryptocurrencyList.newBuilder()

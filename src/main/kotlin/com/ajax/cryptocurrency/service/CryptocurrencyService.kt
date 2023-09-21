@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.File
 
 @Service
@@ -13,37 +15,53 @@ class CryptocurrencyService(
     private val cryptocurrencyRepository: CryptocurrencyRepository,
     @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>,
 
-) {
-    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency =
+    ) {
+    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Mono<Cryptocurrency> =
         cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    fun findAll(): List<Cryptocurrency> {
+    fun findAll(): Flux<Cryptocurrency> {
         return cryptocurrencyRepository.findAll()
     }
 
-    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): List<Cryptocurrency> {
+    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): Flux<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
         return if (name == null)
-            cryptocurrencyRepository.findAll(pageable).content
+            cryptocurrencyRepository.findAllBy(pageable)
         else {
-            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable).content
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable)
         }
     }
 
-    fun writeCsv(fileName: String): File {
+    fun writeCsv(fileName: String): Mono<File> {
         val file = File("./$fileName.csv")
+        return Mono.defer {
+            val cryptoInfoMonoList = cryptocurrencies.map { name ->
+                val minPriceMono = cryptocurrencyRepository.findMinMaxByName(name, 1)
+                val maxPriceMono = cryptocurrencyRepository.findMinMaxByName(name, -1)
 
-        file.bufferedWriter().use { writer ->
+                minPriceMono.zipWith(maxPriceMono) { minPrice, maxPrice ->
+                    Triple(name, minPrice.price, maxPrice.price)
+                }
+            }
+
+            val combinedFlux = Flux.zip(cryptoInfoMonoList) { array ->
+                array.map { it as Triple<String, Float, Float> }
+            }
+
+            val writer = file.bufferedWriter()
             writer.append("Cryptocurrency Name,Min Price,Max Price\n")
 
-            for (name in cryptocurrencies) {
-                val minPrice = cryptocurrencyRepository.findMinMaxByName(name, 1).price
-                val maxPrice = cryptocurrencyRepository.findMinMaxByName(name, -1).price
-
-                writer.append("$name,$minPrice,$maxPrice\n")
-            }
+            combinedFlux
+                .doOnNext { cryptoInfoList ->
+                    cryptoInfoList.forEach { (name, minPrice, maxPrice) ->
+                        writer.append("$name,$minPrice,$maxPrice\n")
+                    }
+                }
+                .collectList()
+                .doOnSuccess {
+                    writer.close() // Close the writer when the data is written
+                }
+                .thenReturn(file)
         }
-
-        return file
     }
 }

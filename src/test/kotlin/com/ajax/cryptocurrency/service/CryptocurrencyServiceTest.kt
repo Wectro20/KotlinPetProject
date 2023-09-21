@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import reactor.core.publisher.Mono
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -26,7 +27,7 @@ class CryptocurrencyServiceTest {
     @MockK
     private lateinit var cryptocurrencyRepository: CryptocurrencyRepository
 
-    private var cryptocurrencies: List<String> = listOf("BTC","ETH","XRP")
+    private var cryptocurrencies: List<String> = listOf("BTC", "ETH", "XRP")
 
     private lateinit var cryptocurrencyService: CryptocurrencyService
 
@@ -56,43 +57,43 @@ class CryptocurrencyServiceTest {
 
     @Test
     fun findBTCMinPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("BTC", 1) } returns cryptocurrencyBTCPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", 1)
+        every { cryptocurrencyRepository.findMinMaxByName("BTC", 1).block() } returns cryptocurrencyBTCPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", 1).block()
         assertEquals(cryptocurrencyBTCPrice, result)
     }
 
     @Test
     fun findBTCMaxPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("BTC", -1) } returns cryptocurrencyBTCPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", -1)
+        every { cryptocurrencyRepository.findMinMaxByName("BTC", -1).block() } returns cryptocurrencyBTCPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("BTC", -1).block()
         assertEquals(cryptocurrencyBTCPrice, result)
     }
 
     @Test
     fun findETHMinPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("ETH", -1) } returns cryptocurrencyETHPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", -1)
+        every { cryptocurrencyRepository.findMinMaxByName("ETH", -1).block() } returns cryptocurrencyETHPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", -1).block()
         assertEquals(cryptocurrencyETHPrice, result)
     }
 
     @Test
     fun findETHMaxPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("ETH", 1) } returns cryptocurrencyETHPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", 1)
+        every { cryptocurrencyRepository.findMinMaxByName("ETH", 1).block() } returns cryptocurrencyETHPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("ETH", 1).block()
         assertEquals(cryptocurrencyETHPrice, result)
     }
 
     @Test
     fun findXRPMinPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("XRP", -1) } returns cryptocurrencyXRPPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", -1)
+        every { cryptocurrencyRepository.findMinMaxByName("XRP", -1).block() } returns cryptocurrencyXRPPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", -1).block()
         assertEquals(cryptocurrencyXRPPrice, result)
     }
 
     @Test
     fun findXRPMaxPriceTest() {
-        every { cryptocurrencyRepository.findMinMaxByName("XRP", 1) } returns cryptocurrencyXRPPrice
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", 1)
+        every { cryptocurrencyRepository.findMinMaxByName("XRP", 1).block() } returns cryptocurrencyXRPPrice
+        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName("XRP", 1).block()
         assertEquals(cryptocurrencyXRPPrice, result)
     }
 
@@ -102,9 +103,10 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable)
-        } returns toPage(sortedList, page)
-        val result = cryptocurrencyService.getCryptocurrencyPages("BTC", 0, 10)
+        every {
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("BTC", pageable).collectList().block()
+        } returns toPage(sortedList, page).toList()
+        val result = cryptocurrencyService.getCryptocurrencyPages("BTC", 0, 10).collectList().block()
         assertEquals(sortedList, result)
     }
 
@@ -114,9 +116,10 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable)
-        } returns toPage(sortedList, page)
-        val result = cryptocurrencyService.getCryptocurrencyPages("ETH", 0, 10)
+        every {
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("ETH", pageable).collectList().block()
+        } returns toPage(sortedList, page).toList()
+        val result = cryptocurrencyService.getCryptocurrencyPages("ETH", 0, 10).collectList().block()
         assertEquals(sortedList, result)
     }
 
@@ -126,22 +129,23 @@ class CryptocurrencyServiceTest {
             .sortedBy { it.price }
         val page = PageRequest.of(0, 10)
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable)
-        } returns toPage(sortedList, page)
-        val result = cryptocurrencyService.getCryptocurrencyPages("XRP", 0, 10)
+        every {
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName("XRP", pageable).collectList().block()
+        } returns toPage(sortedList, page).toList()
+        val result = cryptocurrencyService.getCryptocurrencyPages("XRP", 0, 10).collectList().block()
         assertEquals(sortedList, result)
     }
 
     @Test
     fun createCSV() {
-        every { cryptocurrencyRepository.findMinMaxByName("BTC", -1) } returns cryptocurrencyBTCPrice
-        every { cryptocurrencyRepository.findMinMaxByName("BTC", 1) } returns cryptocurrencyBTCPrice
-        every { cryptocurrencyRepository.findMinMaxByName("ETH", -1) } returns cryptocurrencyETHPrice
-        every { cryptocurrencyRepository.findMinMaxByName("ETH", 1) } returns cryptocurrencyETHPrice
-        every { cryptocurrencyRepository.findMinMaxByName("XRP", -1) } returns cryptocurrencyXRPPrice
-        every { cryptocurrencyRepository.findMinMaxByName("XRP", 1) } returns cryptocurrencyXRPPrice
+        every { cryptocurrencyRepository.findMinMaxByName("BTC", -1) } returns Mono.just(cryptocurrencyBTCPrice)
+        every { cryptocurrencyRepository.findMinMaxByName("BTC", 1) } returns Mono.just(cryptocurrencyBTCPrice)
+        every { cryptocurrencyRepository.findMinMaxByName("ETH", -1) } returns Mono.just(cryptocurrencyETHPrice)
+        every { cryptocurrencyRepository.findMinMaxByName("ETH", 1) } returns Mono.just(cryptocurrencyETHPrice)
+        every { cryptocurrencyRepository.findMinMaxByName("XRP", -1) } returns Mono.just(cryptocurrencyXRPPrice)
+        every { cryptocurrencyRepository.findMinMaxByName("XRP", 1) } returns Mono.just(cryptocurrencyXRPPrice)
 
-        val result = cryptocurrencyService.writeCsv("cryptocurrency-prices-test")
+        val result = cryptocurrencyService.writeCsv("cryptocurrency-prices-test").block()!!
         val actual = isEqual(Paths.get(expectedCsvFile), Paths.get(resultCsvFile))
         result.delete()
         assertEquals(true, actual)

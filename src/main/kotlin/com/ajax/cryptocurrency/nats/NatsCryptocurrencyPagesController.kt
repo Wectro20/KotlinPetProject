@@ -26,7 +26,7 @@ class NatsCryptocurrencyPagesController(
                 request.page.name,
                 request.page.pageNumber,
                 request.page.pageSize
-        ).map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
+        ).map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }.collectList().block()
 
         val list = CryptocurrencyList.newBuilder()
             .addAllCryptocurrency(cryptocurrencyPages)

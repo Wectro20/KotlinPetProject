@@ -21,7 +21,7 @@ class NatsCryptocurrencyGetMinPriceController(
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
-        val cryptocurrency = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(request.name.name, 1)
+        val cryptocurrency = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(request.name.name, 1).block()!!
 
         return CryptocurrencyResponse.newBuilder()
             .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(cryptocurrency))

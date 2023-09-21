@@ -17,6 +17,7 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import reactor.core.publisher.Flux
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -70,7 +71,7 @@ class NatsCryptocurrencyPagesControllerTest {
 
         every {
             cryptocurrencyService.getCryptocurrencyPages(cryptoName, 1, 10)
-        } returns sortedList
+        } returns Flux.fromIterable(sortedList)
 
         sortedList.forEach { crypto ->
             every {

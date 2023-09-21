@@ -60,7 +60,7 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         val crypto = cryptocurrencyMap[cryptoName]!!
 
         every {
-            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)
+            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1).block()
         } returns crypto
 
         every {
@@ -75,7 +75,7 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         assertEquals(crypto.price, cryptoFromResponse.price)
         assertEquals(crypto.createdTime, cryptoFromResponse.createdTime)
 
-        verify { cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1) }
+        verify { cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1).block() }
         verify { cryptocurrencyConvertor.cryptocurrencyToProto(crypto) }
     }
 }
