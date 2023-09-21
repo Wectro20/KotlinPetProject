@@ -1,26 +1,24 @@
 package com.ajax.cryptocurrency.natscontroller
 
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.nats.NatsCryptocurrencyGetMinPriceController
-import com.ajax.cryptocurrency.natscontroller.toDomain
-import com.ajax.cryptocurrency.natscontroller.toProto
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
-import io.nats.client.Connection
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.Assertions.assertEquals
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import io.mockk.mockk
 import io.mockk.verify
+import io.nats.client.Connection
 import org.bson.types.ObjectId
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class NatsCryptocurrencyGetMinPriceControllerTest {

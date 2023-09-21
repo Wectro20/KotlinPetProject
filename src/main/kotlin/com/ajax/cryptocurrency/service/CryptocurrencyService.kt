@@ -2,26 +2,26 @@ package com.ajax.cryptocurrency.service
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
+import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.Signal.subscribe
 import java.io.File
 
 @Service
 class CryptocurrencyService(
-    private val cryptocurrencyRepository: CryptocurrencyRepository,
+    private val cryptocurrencyRepository: CryptocurrencyRepositoryImpl,
     @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>,
-
-    ) {
+) {
     fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Mono<Cryptocurrency> =
         cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    fun findAll(): Flux<Cryptocurrency> {
-        return cryptocurrencyRepository.findAll()
-    }
+    fun findAll(): Flux<Cryptocurrency> = cryptocurrencyRepository.findAll()
 
     fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): Flux<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
@@ -44,6 +44,7 @@ class CryptocurrencyService(
                 }
             }
 
+
             val combinedFlux = Flux.zip(cryptoInfoMonoList) { array ->
                 array.map { it as Triple<String, Float, Float> }
             }
@@ -59,7 +60,7 @@ class CryptocurrencyService(
                 }
                 .collectList()
                 .doOnSuccess {
-                    writer.close() // Close the writer when the data is written
+                    writer.close()
                 }
                 .thenReturn(file)
         }

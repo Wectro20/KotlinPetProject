@@ -1,12 +1,12 @@
 package com.ajax.cryptocurrency.nats
 
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyFile
 import com.ajax.cryptocurrency.NatsSubject.GET_CSV_CRYPTOCURRENCY_SUBJECT
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.google.protobuf.ByteString
 import com.google.protobuf.Parser
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyFile
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
 

@@ -7,7 +7,6 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URL
@@ -35,7 +34,7 @@ class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): Pa
                         createdTime = createdTimeStamp.toLocalDateTime()
                     )
 
-                    cryptocurrencyRepository.save(cryptocurrency)
+                    cryptocurrencyRepository.save(cryptocurrency).subscribe()
                 }
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)

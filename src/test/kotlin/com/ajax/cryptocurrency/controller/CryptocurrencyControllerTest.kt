@@ -3,10 +3,11 @@ package com.ajax.cryptocurrency.controller;
 import com.ajax.cryptocurrency.CryptocurrencyApplication
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -14,7 +15,6 @@ import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
@@ -29,7 +29,6 @@ import java.time.ZoneOffset
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
 @WebFluxTest
 class CryptocurrencyControllerTest {
-    private val cryptocurrencies: List<String> = listOf("BTC", "ETH", "XRP")
 
     @Autowired
     private lateinit var webTestClient: WebTestClient;
@@ -52,53 +51,51 @@ class CryptocurrencyControllerTest {
         Cryptocurrency(id, "XRP", 520f, time)
     )
 
-    @Test
-    fun getPriceTests() {
-        for (crypto in cryptocurrencies) {
-            val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
-            val cryptoMono: Mono<Cryptocurrency> = Mono.just(cryptocurrencyPrice)
+    @ParameterizedTest
+    @ValueSource(strings = ["BTC", "ETH", "XRP"])
+    fun getPriceTests(crypto: String) {
+        val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
+        val cryptoMono: Mono<Cryptocurrency> = Mono.just(cryptocurrencyPrice)
 
-            doReturn(cryptoMono).`when`(cryptocurrencyService)
-                .findMinMaxPriceByCryptocurrencyName(crypto, 1)
-            doReturn(cryptoMono).`when`(cryptocurrencyService)
-                .findMinMaxPriceByCryptocurrencyName(crypto, -1)
+        doReturn(cryptoMono).`when`(cryptocurrencyService)
+            .findMinMaxPriceByCryptocurrencyName(crypto, 1)
+        doReturn(cryptoMono).`when`(cryptocurrencyService)
+            .findMinMaxPriceByCryptocurrencyName(crypto, -1)
 
-            webTestClient.get()
-                .uri("/cryptocurrencies/minprice?name=$crypto")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(cryptocurrencyPrice.javaClass)
+        webTestClient.get()
+            .uri("/cryptocurrencies/minprice?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(cryptocurrencyPrice.javaClass)
 
-            webTestClient.get()
-                .uri("/cryptocurrencies/maxprice?name=$crypto")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(cryptocurrencyPrice.javaClass)
-        }
+        webTestClient.get()
+            .uri("/cryptocurrencies/maxprice?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(cryptocurrencyPrice.javaClass)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["BTC", "ETH", "XRP"])
+    fun getPageTests(crypto: String) {
+        val sortedList = list.filter { it.cryptocurrencyName == crypto }
+            .sortedBy { it.price }
+
+        doReturn(Flux.fromIterable(sortedList)).`when`(cryptocurrencyService)
+            .getCryptocurrencyPages(crypto, 0, 10)
+
+        webTestClient.get()
+            .uri("/cryptocurrencies?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(sortedList.javaClass)
     }
 
     @Test
-    fun getPageTests() {
-        for (crypto in cryptocurrencies) {
-            val sortedList = list.filter { it.cryptocurrencyName == crypto }
-                .sortedBy { it.price }
-
-            doReturn(Flux.fromIterable(sortedList)).`when`(cryptocurrencyService)
-                .getCryptocurrencyPages(crypto, 0, 10)
-
-            webTestClient.get()
-                .uri("/cryptocurrencies?name=$crypto")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(sortedList.javaClass)
-        }
-    }
-
-    @Test
-    fun `test downloadFile method`() {
+    fun downloadFileTest() {
         val fileName = "test-report"
         val file = File(expectedCsvFile)
 
