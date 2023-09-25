@@ -7,24 +7,33 @@ import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
 import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import io.mockk.verify
 import io.nats.client.Connection
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class NatsCryptocurrencyGetMaxPriceControllerTest {
+    @MockK
     private lateinit var cryptocurrencyService: CryptocurrencyService
+
+    @MockK
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
+
+    @Suppress("UnusedPrivateProperty")
+    @MockK
     private lateinit var connection: Connection
+
+    @InjectMockKs
     private lateinit var controller: NatsCryptocurrencyGetMaxPriceController
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
@@ -36,19 +45,6 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         "XRP" to Cryptocurrency(id, "XRP", 12341f, time)
     )
 
-    @BeforeEach
-    fun setUp() {
-        cryptocurrencyService = mockk()
-        cryptocurrencyConvertor = mockk()
-        connection = mockk()
-
-        controller = NatsCryptocurrencyGetMaxPriceController(
-            cryptocurrencyService,
-            cryptocurrencyConvertor,
-            connection
-        )
-    }
-
     @ParameterizedTest
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun testHandler(cryptoName: String) {
@@ -58,8 +54,8 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         val crypto = cryptocurrencyMap[cryptoName]!!
 
         every {
-            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1).block()
-        } returns crypto
+            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)
+        } returns Mono.just(crypto)
 
         every {
             cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
@@ -73,7 +69,7 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         assertEquals(crypto.price, cryptoFromResponse.price)
         assertEquals(crypto.createdTime, cryptoFromResponse.createdTime)
 
-        verify { cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1).block() }
+        verify { cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1) }
         verify { cryptocurrencyConvertor.cryptocurrencyToProto(crypto) }
     }
 }

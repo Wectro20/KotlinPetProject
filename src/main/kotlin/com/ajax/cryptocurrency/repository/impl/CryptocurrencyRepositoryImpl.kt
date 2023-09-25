@@ -5,7 +5,6 @@ import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Repository
@@ -16,9 +15,11 @@ import reactor.core.publisher.Mono
 class CryptocurrencyRepositoryImpl(
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
 ) : CryptocurrencyRepository {
-    override fun save(cryptocurrency: Cryptocurrency): Mono<Cryptocurrency> {
-        return reactiveMongoTemplate.save(cryptocurrency)
-    }
+    override fun save(cryptocurrency: Cryptocurrency): Mono<Cryptocurrency> =
+        reactiveMongoTemplate.save(cryptocurrency)
+
+    override fun findAll(): Flux<Cryptocurrency> =
+        reactiveMongoTemplate.findAll(Cryptocurrency::class.java)
 
     override fun findMinMaxByName(cryptocurrencyName: String, sort: Int): Mono<Cryptocurrency> {
         val matchCriteria = Criteria.where("cryptocurrencyName").`is`(cryptocurrencyName)
@@ -26,10 +27,6 @@ class CryptocurrencyRepositoryImpl(
         val query = Query().addCriteria(matchCriteria).with(sortOrder).limit(1)
 
         return reactiveMongoTemplate.findOne(query, Cryptocurrency::class.java)
-    }
-
-    override fun findAll(): Flux<Cryptocurrency> {
-        return reactiveMongoTemplate.findAll(Cryptocurrency::class.java)
     }
 
     override fun findAllBy(pageable: Pageable): Flux<Cryptocurrency> {

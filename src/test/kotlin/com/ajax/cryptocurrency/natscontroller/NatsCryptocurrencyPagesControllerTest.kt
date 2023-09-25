@@ -7,6 +7,8 @@ import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import cryptocurrency.CryptocurrencyOuterClass
 import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
@@ -23,9 +25,17 @@ import java.time.ZoneOffset
 
 @ExtendWith(MockKExtension::class)
 class NatsCryptocurrencyPagesControllerTest {
+    @MockK
     private lateinit var cryptocurrencyService: CryptocurrencyService
+
+    @MockK
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
+
+    @Suppress("UnusedPrivateProperty")
+    @MockK
     private lateinit var connection: Connection
+
+    @InjectMockKs
     private lateinit var controller: NatsCryptocurrencyPagesController
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()

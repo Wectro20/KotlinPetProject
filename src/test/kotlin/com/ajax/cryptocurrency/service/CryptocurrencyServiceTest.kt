@@ -1,7 +1,6 @@
 package com.ajax.cryptocurrency.service
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

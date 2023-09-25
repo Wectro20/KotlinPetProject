@@ -1,16 +1,13 @@
 package com.ajax.cryptocurrency.service
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
 import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.Signal.subscribe
 import java.io.File
 
 @Service
@@ -34,35 +31,22 @@ class CryptocurrencyService(
 
     fun writeCsv(fileName: String): Mono<File> {
         val file = File("./$fileName.csv")
-        return Mono.defer {
-            val cryptoInfoMonoList = cryptocurrencies.map { name ->
-                val minPriceMono = cryptocurrencyRepository.findMinMaxByName(name, 1)
-                val maxPriceMono = cryptocurrencyRepository.findMinMaxByName(name, -1)
-
-                minPriceMono.zipWith(maxPriceMono) { minPrice, maxPrice ->
-                    Triple(name, minPrice.price, maxPrice.price)
+        return Flux.fromIterable(cryptocurrencies)
+            .flatMap { name ->
+                Mono.zip(
+                    cryptocurrencyRepository.findMinMaxByName(name, 1),
+                    cryptocurrencyRepository.findMinMaxByName(name, -1)
+                ).map {
+                    "$name,${it.t1.price},${it.t2.price}\n"
                 }
             }
-
-
-            val combinedFlux = Flux.zip(cryptoInfoMonoList) { array ->
-                array.map { it as Triple<String, Float, Float> }
+            .collectList()
+            .map { list ->
+                file.bufferedWriter().use { writer ->
+                    writer.append("Cryptocurrency Name,Min Price,Max Price\n")
+                    list.forEach { writer.append(it) }
+                }
+                file
             }
-
-            val writer = file.bufferedWriter()
-            writer.append("Cryptocurrency Name,Min Price,Max Price\n")
-
-            combinedFlux
-                .doOnNext { cryptoInfoList ->
-                    cryptoInfoList.forEach { (name, minPrice, maxPrice) ->
-                        writer.append("$name,$minPrice,$maxPrice\n")
-                    }
-                }
-                .collectList()
-                .doOnSuccess {
-                    writer.close()
-                }
-                .thenReturn(file)
-        }
     }
 }

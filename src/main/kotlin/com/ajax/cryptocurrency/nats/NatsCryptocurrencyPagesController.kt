@@ -23,17 +23,19 @@ class NatsCryptocurrencyPagesController(
 
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
         val cryptocurrencyPages = cryptocurrencyService.getCryptocurrencyPages(
-                request.page.name,
-                request.page.pageNumber,
-                request.page.pageSize
-        ).map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }.collectList().block()
-
-        val list = CryptocurrencyList.newBuilder()
-            .addAllCryptocurrency(cryptocurrencyPages)
-            .build()
+            request.page.name,
+            request.page.pageNumber,
+            request.page.pageSize
+        ).map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
+            .collectList()
+            .map { allCryptocurrency ->
+                CryptocurrencyList.newBuilder()
+                    .addAllCryptocurrency(allCryptocurrency)
+                    .build()
+            }.block()!!
 
         return CryptocurrencyResponse.newBuilder()
-            .setCryptocurrencyList(list)
+            .setCryptocurrencyList(cryptocurrencyPages)
             .build()
     }
 }
