@@ -1,12 +1,12 @@
 package com.ajax.cryptocurrency.nats
 
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyList
 import com.ajax.cryptocurrency.NatsSubject.GET_MAX_CRYPTOCURRENCY_PAGES_SUBJECT
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import com.google.protobuf.Parser
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyList
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
+import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
 
@@ -23,17 +23,19 @@ class NatsCryptocurrencyPagesController(
 
     override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
         val cryptocurrencyPages = cryptocurrencyService.getCryptocurrencyPages(
-                request.page.name,
-                request.page.pageNumber,
-                request.page.pageSize
+            request.page.name,
+            request.page.pageNumber,
+            request.page.pageSize
         ).map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
-
-        val list = CryptocurrencyList.newBuilder()
-            .addAllCryptocurrency(cryptocurrencyPages)
-            .build()
+            .collectList()
+            .map { allCryptocurrency ->
+                CryptocurrencyList.newBuilder()
+                    .addAllCryptocurrency(allCryptocurrency)
+                    .build()
+            }.block()!!
 
         return CryptocurrencyResponse.newBuilder()
-            .setCryptocurrencyList(list)
+            .setCryptocurrencyList(cryptocurrencyPages)
             .build()
     }
 }

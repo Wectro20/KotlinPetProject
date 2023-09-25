@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/cryptocurrencies")
@@ -20,38 +21,34 @@ import org.springframework.web.bind.annotation.RestController
 class CryptocurrencyController(private val cryptocurrencyService: CryptocurrencyService) {
 
     @GetMapping("/findall")
-    fun getAll(): ResponseEntity<List<Cryptocurrency>> =
-        ResponseEntity.ok(cryptocurrencyService.findAll())
+    fun getAll(): Flux<Cryptocurrency> = cryptocurrencyService.findAll()
 
     @GetMapping("/minprice")
-    fun getMinCryptocurrencyPrice(@RequestParam name: String): ResponseEntity<Cryptocurrency> =
-        ResponseEntity.ok(cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, 1))
-
+    fun getMinCryptocurrencyPrice(@RequestParam name: String): Mono<Cryptocurrency> =
+        cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, 1)
 
     @GetMapping("/maxprice")
-    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): ResponseEntity<Cryptocurrency> =
-        ResponseEntity.ok(cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, -1))
+    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): Mono<Cryptocurrency> =
+        cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, -1)
 
     @GetMapping
     fun getCryptocurrencyByPages(
         @RequestParam(required = false) name: String?,
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
-    ): ResponseEntity<List<Cryptocurrency>> {
-        return ResponseEntity.ok(cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size))}
+    ): Flux<Cryptocurrency> = cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size)
+
 
     @GetMapping("/csv")
     fun downloadFile(
         @RequestParam(defaultValue = "cryptocurrency-report") fileName: String
-    ): ResponseEntity<FileSystemResource> {
-        val file = cryptocurrencyService.writeCsv(fileName)
-        val headers = HttpHeaders()
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")
+    ): Mono<ResponseEntity<FileSystemResource>> {
+        return cryptocurrencyService.writeCsv(fileName).map { file ->
+                val headers = HttpHeaders()
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")
 
-        return ResponseEntity.ok()
-            .headers(headers)
-            .contentLength(file.length())
-            .contentType(MediaType.parseMediaType("text/csv"))
-            .body(FileSystemResource(file))
+                ResponseEntity.ok().headers(headers).contentLength(file.length())
+                    .contentType(MediaType.parseMediaType("text/csv")).body(FileSystemResource(file))
+            }
     }
 }

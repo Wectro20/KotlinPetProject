@@ -1,49 +1,52 @@
 package com.ajax.cryptocurrency.service
 
 import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
+import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.File
 
 @Service
 class CryptocurrencyService(
-    private val cryptocurrencyRepository: CryptocurrencyRepository,
+    private val cryptocurrencyRepository: CryptocurrencyRepositoryImpl,
     @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>,
-
 ) {
-    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Cryptocurrency =
+    fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Mono<Cryptocurrency> =
         cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    fun findAll(): List<Cryptocurrency> {
-        return cryptocurrencyRepository.findAll()
-    }
+    fun findAll(): Flux<Cryptocurrency> = cryptocurrencyRepository.findAll()
 
-    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): List<Cryptocurrency> {
+    fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): Flux<Cryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
         return if (name == null)
-            cryptocurrencyRepository.findAll(pageable).content
+            cryptocurrencyRepository.findAllBy(pageable)
         else {
-            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable).content
+            cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(name, pageable)
         }
     }
 
-    fun writeCsv(fileName: String): File {
+    fun writeCsv(fileName: String): Mono<File> {
         val file = File("./$fileName.csv")
-
-        file.bufferedWriter().use { writer ->
-            writer.append("Cryptocurrency Name,Min Price,Max Price\n")
-
-            for (name in cryptocurrencies) {
-                val minPrice = cryptocurrencyRepository.findMinMaxByName(name, 1).price
-                val maxPrice = cryptocurrencyRepository.findMinMaxByName(name, -1).price
-
-                writer.append("$name,$minPrice,$maxPrice\n")
+        return Flux.fromIterable(cryptocurrencies)
+            .flatMap { name ->
+                Mono.zip(
+                    cryptocurrencyRepository.findMinMaxByName(name, 1),
+                    cryptocurrencyRepository.findMinMaxByName(name, -1)
+                ).map {
+                    "$name,${it.t1.price},${it.t2.price}\n"
+                }
             }
-        }
-
-        return file
+            .collectList()
+            .map { list ->
+                file.bufferedWriter().use { writer ->
+                    writer.append("Cryptocurrency Name,Min Price,Max Price\n")
+                    list.forEach { writer.append(it) }
+                }
+                file
+            }
     }
 }

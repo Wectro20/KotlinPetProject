@@ -3,43 +3,35 @@ package com.ajax.cryptocurrency.controller;
 import com.ajax.cryptocurrency.CryptocurrencyApplication
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.CryptocurrencyService
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.web.reactive.server.WebTestClient
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 
 @ContextConfiguration(classes = [CryptocurrencyApplication::class])
-@WebMvcTest
+@WebFluxTest
 class CryptocurrencyControllerTest {
-    private val cryptocurrencies: List<String> = listOf("BTC", "ETH", "XRP")
 
     @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
-
-    @Autowired
-    private lateinit var cryptocurrencyController: CryptocurrencyController
+    private lateinit var webTestClient: WebTestClient;
 
     @MockBean
     private lateinit var cryptocurrencyService: CryptocurrencyService
@@ -59,66 +51,70 @@ class CryptocurrencyControllerTest {
         Cryptocurrency(id, "XRP", 520f, time)
     )
 
-    @Test
-    fun getPriceTests() {
-        for (crypto in cryptocurrencies) {
-            val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
-            val minPrice = cryptocurrencyPrice
-            val maxPrice = cryptocurrencyPrice
-            doReturn(minPrice).`when`(cryptocurrencyService)
-                .findMinMaxPriceByCryptocurrencyName(crypto, 1)
-            doReturn(maxPrice).`when`(cryptocurrencyService)
-                .findMinMaxPriceByCryptocurrencyName(crypto, -1)
+    @ParameterizedTest
+    @ValueSource(strings = ["BTC", "ETH", "XRP"])
+    fun getPriceTests(crypto: String) {
+        val cryptocurrencyPrice = Cryptocurrency(id, crypto, 12341f, time)
+        val cryptoMono: Mono<Cryptocurrency> = Mono.just(cryptocurrencyPrice)
 
-            val minPriceJson = objectMapper.writeValueAsString(minPrice)
-            val maxPriceJson = objectMapper.writeValueAsString(maxPrice)
+        doReturn(cryptoMono).`when`(cryptocurrencyService)
+            .findMinMaxPriceByCryptocurrencyName(crypto, 1)
+        doReturn(cryptoMono).`when`(cryptocurrencyService)
+            .findMinMaxPriceByCryptocurrencyName(crypto, -1)
 
-            mockMvc.perform(
-                MockMvcRequestBuilders.get("/cryptocurrencies/minprice?name=$crypto")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(minPriceJson))
+        webTestClient.get()
+            .uri("/cryptocurrencies/minprice?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(cryptocurrencyPrice.javaClass)
 
-            mockMvc.perform(MockMvcRequestBuilders.get("/cryptocurrencies/maxprice?name=$crypto")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(maxPriceJson))
-        }
+        webTestClient.get()
+            .uri("/cryptocurrencies/maxprice?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(cryptocurrencyPrice.javaClass)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["BTC", "ETH", "XRP"])
+    fun getPageTests(crypto: String) {
+        val sortedList = list.filter { it.cryptocurrencyName == crypto }
+            .sortedBy { it.price }
+
+        doReturn(Flux.fromIterable(sortedList)).`when`(cryptocurrencyService)
+            .getCryptocurrencyPages(crypto, 0, 10)
+
+        webTestClient.get()
+            .uri("/cryptocurrencies?name=$crypto")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(sortedList.javaClass)
     }
 
     @Test
-    fun getPageTests() {
-        for (crypto in cryptocurrencies) {
-            val sortedList = list.filter { it.cryptocurrencyName == crypto }
-                .sortedBy { it.price }
-
-            doReturn(sortedList).`when`(cryptocurrencyService)
-                .getCryptocurrencyPages(crypto, 0, 10)
-
-            val sortedListJson = objectMapper.writeValueAsString(sortedList)
-
-            mockMvc.perform(MockMvcRequestBuilders.get("/cryptocurrencies?name=$crypto")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(sortedListJson))
-        }
-    }
-
-    @Test
-    fun `test downloadFile method`() {
+    fun downloadFileTest() {
         val fileName = "test-report"
         val file = File(expectedCsvFile)
-        `when`(cryptocurrencyService.writeCsv(fileName)).thenReturn(file)
 
-        val response: ResponseEntity<FileSystemResource> = cryptocurrencyController.downloadFile(fileName)
+        val fileMono: Mono<File> = Mono.just(file)
+        `when`(cryptocurrencyService.writeCsv(fileName)).thenReturn(fileMono)
+
+        webTestClient.get()
+            .uri("/cryptocurrencies/csv?fileName=$fileName")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().valueEquals(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")
+            .expectHeader().contentType(MediaType.parseMediaType("text/csv"))
+            .expectBody()
+            .consumeWith { response ->
+                val contentLength = response.responseHeaders.contentLength
+                assertEquals(file.length(), contentLength)
+            }
 
         verify(cryptocurrencyService, times(1)).writeCsv(fileName)
-
-        assert(response.headers.containsKey(HttpHeaders.CONTENT_DISPOSITION))
-        assert(response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION) == "attachment; filename=$fileName.csv")
-        assert(response.headers.contentType == MediaType.parseMediaType("text/csv"))
-
-        val contentLength = response.body?.inputStream?.available()?.toLong()
-        assertEquals(contentLength, file.length())
     }
 }
