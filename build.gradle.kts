@@ -35,6 +35,12 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.json:json:20230227")
 	implementation("io.nats:jnats:2.16.14")
+	implementation("io.grpc:grpc-protobuf:1.58.0")
+	implementation("io.grpc:grpc-netty:1.58.0")
+	implementation("io.grpc:grpc-stub:1.58.0")
+	implementation("com.salesforce.servicelibs:reactor-grpc:1.2.4")
+	implementation("com.salesforce.servicelibs:reactive-grpc-common:1.2.4")
+	implementation("com.salesforce.servicelibs:reactor-grpc-stub:1.2.4")
 	implementation("com.google.protobuf:protobuf-java:3.24.2")
 	implementation("com.google.protobuf:protobuf-java-util:3.20.1")
 	implementation(project(":nats-api"))
@@ -43,6 +49,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.mockk:mockk:1.13.7")
 	testImplementation("io.projectreactor:reactor-test:3.5.10")
+	testImplementation ("io.grpc:grpc-testing:1.38.1")
 }
 
 tasks.withType<KotlinCompile> {
@@ -65,6 +72,12 @@ subprojects {
     dependencies{
         implementation("com.google.protobuf:protobuf-java:3.24.2")
         implementation("com.google.protobuf:protobuf-java-util:3.20.1")
+		implementation("io.grpc:grpc-protobuf:1.58.0")
+		implementation("io.grpc:grpc-netty:1.58.0")
+		implementation("io.grpc:grpc-stub:1.58.0")
+		implementation("com.salesforce.servicelibs:reactor-grpc:1.2.4")
+		implementation("com.salesforce.servicelibs:reactive-grpc-common:1.2.4")
+		implementation("com.salesforce.servicelibs:reactor-grpc-stub:1.2.4")
     }
 
     java {
