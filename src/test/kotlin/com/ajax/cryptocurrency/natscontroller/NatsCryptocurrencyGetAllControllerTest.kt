@@ -1,6 +1,5 @@
 package com.ajax.cryptocurrency.natscontroller
 
-
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.nats.NatsCryptocurrencyGetAllController

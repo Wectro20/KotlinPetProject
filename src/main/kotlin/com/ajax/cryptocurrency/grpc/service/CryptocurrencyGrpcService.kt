@@ -67,8 +67,9 @@ class CryptocurrencyGrpcService(
         return request.flatMap {
             cryptocurrencyService.writeCsv(it.name.name).map { file ->
                 val fileBytes = ByteString.copyFrom(file.readBytes())
-                CryptocurrencyResponse.newBuilder()
-                    .setFile(CryptocurrencyFile.newBuilder().setFile(fileBytes)).build()
+                CryptocurrencyResponse.newBuilder().apply {
+                    fileBuilder.setFile(fileBytes)
+                }.build()
             }
         }
     }

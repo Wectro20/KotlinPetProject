@@ -1,6 +1,5 @@
 package com.ajax.cryptocurrency.nats
 
-
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyList
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse

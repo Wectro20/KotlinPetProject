@@ -19,7 +19,7 @@ class AppConfig(
     @Bean
     fun natsConnection(): Connection = Nats.connect(natsUrl)
 
-    @Bean
+    @Bean(destroyMethod = "shutdown")
     fun grpcServer(cryptocurrencyGrpcService: CryptocurrencyGrpcService): Server {
         logger.info("Creating gRPC server on port $grpcPort")
 
@@ -29,16 +29,11 @@ class AppConfig(
 
         server.start()
 
-        Runtime.getRuntime().addShutdownHook(Thread {
-            logger.info("Shutting down gRPC server...")
-            server.shutdown()
-            logger.info("gRPC server shutdown complete.")
-        })
-
         logger.info("gRPC server started on port $grpcPort")
 
         return server
     }
+
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(AppConfig::class.java)
