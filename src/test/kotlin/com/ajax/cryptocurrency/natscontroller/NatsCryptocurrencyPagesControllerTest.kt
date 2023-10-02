@@ -1,11 +1,13 @@
 package com.ajax.cryptocurrency.natscontroller
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.nats.NatsCryptocurrencyPagesController
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
-import cryptocurrency.CryptocurrencyOuterClass
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
+import com.ajax.cryptocurrency.toDomain
+import com.ajax.cryptocurrency.toProto
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

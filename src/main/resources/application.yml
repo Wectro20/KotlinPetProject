@@ -4,6 +4,8 @@ spring:
       database: cryptocurrency-price
       host: localhost
       port: 27017
+  grpc:
+    port: 9090
 cryptocurrency:
   name: BTC,ETH,XRP
   sleepTime: 5000
@@ -11,3 +13,6 @@ cryptocurrency:
 nats:
   connection:
     url: nats://localhost:4222
+
+
+

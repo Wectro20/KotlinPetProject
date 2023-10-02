@@ -1,9 +1,9 @@
-package com.ajax.cryptocurrency.natscontroller
+package com.ajax.cryptocurrency
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.service.convertproto.toLocalDateTime
 import com.ajax.cryptocurrency.service.convertproto.toTimestamp
-import cryptocurrency.CryptocurrencyOuterClass
 
 fun Cryptocurrency.toProto(): CryptocurrencyOuterClass.Cryptocurrency {
     return CryptocurrencyOuterClass.Cryptocurrency.newBuilder()

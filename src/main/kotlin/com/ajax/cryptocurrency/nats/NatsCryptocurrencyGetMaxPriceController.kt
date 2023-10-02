@@ -1,11 +1,11 @@
 package com.ajax.cryptocurrency.nats
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.NatsSubject.GET_MAX_CRYPTOCURRENCY_PRICE_SUBJECT
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import com.google.protobuf.Parser
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
 

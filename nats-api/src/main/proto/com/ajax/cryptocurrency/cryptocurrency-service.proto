@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "com/ajax/cryptocurrency/cryptocurrency.proto";
+
+package com.ajax.cryptocurrency;
+
+service CryptocurrencyService {
+  rpc FindMinMaxPriceByCryptocurrencyName (CryptocurrencyRequest) returns (CryptocurrencyResponse);
+  rpc FindAllCryptocurrencies (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
+  rpc GetCryptocurrencyPages (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
+  rpc WriteCsvFile (CryptocurrencyRequest) returns (CryptocurrencyResponse);
+}
