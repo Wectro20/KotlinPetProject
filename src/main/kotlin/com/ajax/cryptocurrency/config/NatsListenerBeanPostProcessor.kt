@@ -4,6 +4,8 @@ import com.ajax.cryptocurrency.nats.NatsController
 import com.google.protobuf.GeneratedMessageV3
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 @Component
 class NatsListenerBeanPostProcessor : BeanPostProcessor {
@@ -18,9 +20,15 @@ class NatsListenerBeanPostProcessor : BeanPostProcessor {
             .initialize() {
         connection.createDispatcher { message ->
             val parsedData = parser.parseFrom(message.data)
-            val response = handler(parsedData)
-            connection.publish(message.replyTo, response.toByteArray())
+
+            handler(parsedData)
+                .subscribeOn(Schedulers.parallel())
+                .map { it.toByteArray() }
+                .flatMap { response ->
+                    Mono.fromCallable { connection.publish(message.replyTo, response) }
+                        .subscribeOn(Schedulers.parallel())
+                }
+                .subscribe()
         }.subscribe(subject)
     }
-
 }

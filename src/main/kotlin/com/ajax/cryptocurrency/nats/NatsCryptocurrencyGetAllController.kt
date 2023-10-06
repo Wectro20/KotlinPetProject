@@ -9,6 +9,7 @@ import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 
 @Component
 class NatsCryptocurrencyGetAllController (
@@ -21,16 +22,18 @@ class NatsCryptocurrencyGetAllController (
 
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
-    override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
-        val allCryptocurrency = cryptocurrencyService.findAll().collectList().block()!!
+    override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
+        return cryptocurrencyService.findAll()
             .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
+            .collectList()
+            .map { allCryptocurrency ->
+                val list = CryptocurrencyList.newBuilder()
+                    .addAllCryptocurrency(allCryptocurrency)
+                    .build()
 
-        val list = CryptocurrencyList.newBuilder()
-            .addAllCryptocurrency(allCryptocurrency)
-            .build()
-
-        return CryptocurrencyResponse.newBuilder()
-            .setCryptocurrencyList(list)
-            .build()
+                CryptocurrencyResponse.newBuilder()
+                    .setCryptocurrencyList(list)
+                    .build()
+            }
     }
 }

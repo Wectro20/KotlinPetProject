@@ -1,6 +1,7 @@
 package com.ajax.cryptocurrency.parser
 
 import com.ajax.cryptocurrency.annotation.ScheduledBackgroundJobStarter
+import com.ajax.cryptocurrency.kafka.CryptocurrencyKafkaProducer
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.parser.interfaces.ParserInterface
 import com.ajax.cryptocurrency.repository.CryptocurrencyRepository
@@ -13,8 +14,11 @@ import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@ScheduledBackgroundJobStarter(startDelay = 1000, period = 5000)
-class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): ParserInterface {
+@ScheduledBackgroundJobStarter(startDelay = 10000, period = 5000)
+class Parser(
+    private val cryptocurrencyRepository: CryptocurrencyRepository,
+    private val cryptocurrencyKafkaProducer: CryptocurrencyKafkaProducer
+): ParserInterface {
 
     override fun savePrices(cryptocurrencyName: String) {
             val url = "https://cex.io/api/last_price/$cryptocurrencyName/USD"
@@ -34,7 +38,10 @@ class Parser(private val cryptocurrencyRepository: CryptocurrencyRepository): Pa
                         createdTime = createdTimeStamp.toLocalDateTime()
                     )
 
-                    cryptocurrencyRepository.save(cryptocurrency).subscribe()
+                    cryptocurrencyRepository.save(cryptocurrency)
+                        .doAfterTerminate{
+                            cryptocurrencyKafkaProducer.sendCryptocurrencyToKafka(cryptocurrency)
+                        }.subscribe()
                 }
             }.onFailure { e ->
                 logger.error("An exception occurred while saving prices", e)

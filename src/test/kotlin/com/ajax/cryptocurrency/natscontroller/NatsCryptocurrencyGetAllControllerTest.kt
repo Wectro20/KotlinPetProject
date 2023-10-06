@@ -1,5 +1,6 @@
 package com.ajax.cryptocurrency.natscontroller
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.nats.NatsCryptocurrencyGetAllController
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -62,14 +65,20 @@ class NatsCryptocurrencyGetAllControllerTest {
             } returns crypto.toProto()
         }
 
-        val response = controller.handler(request)
-        val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+        val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
-        assertEquals(
-            cryptocurrencyList.map { it.cryptocurrencyName },
-            cryptoListFromResponse.map { it.cryptocurrencyName })
-        assertEquals(cryptocurrencyList.map { it.price }, cryptoListFromResponse.map { it.price })
-        assertEquals(cryptocurrencyList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
+        StepVerifier.create(responseMono)
+            .expectNextMatches { response ->
+                val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+                assertEquals(
+                    cryptocurrencyList.map { it.cryptocurrencyName },
+                    cryptoListFromResponse.map { it.cryptocurrencyName })
+                assertEquals(cryptocurrencyList.map { it.price }, cryptoListFromResponse.map { it.price })
+                assertEquals(cryptocurrencyList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
+                true
+            }
+            .verifyComplete()
+
         verify { cryptocurrencyService.findAll() }
 
         cryptocurrencyList.forEach { crypto ->

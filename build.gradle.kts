@@ -25,12 +25,14 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation("io.projectreactor:reactor-core:3.5.10")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.json:json:20230227")
@@ -43,6 +45,9 @@ dependencies {
 	implementation("com.salesforce.servicelibs:reactor-grpc-stub:1.2.4")
 	implementation("com.google.protobuf:protobuf-java:3.24.2")
 	implementation("com.google.protobuf:protobuf-java-util:3.20.1")
+	implementation ("org.springframework.kafka:spring-kafka")
+	implementation ("io.projectreactor.kafka:reactor-kafka")
+	implementation("io.confluent:kafka-protobuf-serializer:7.4.0")
 	implementation(project(":nats-api"))
 
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

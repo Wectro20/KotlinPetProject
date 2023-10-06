@@ -1,11 +1,12 @@
 package com.ajax.cryptocurrency.grpc.service
 
-import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyFile
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass.Cryptocurrency
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc.CryptocurrencyServiceImplBase
 import com.ajax.cryptocurrency.service.CryptocurrencyService
 import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.shared.stream.SharedStream
 import com.google.protobuf.ByteString
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -14,8 +15,21 @@ import reactor.core.publisher.Mono
 @Component
 class CryptocurrencyGrpcService(
     private val cryptocurrencyService: CryptocurrencyService,
-    private val cryptocurrencyConvertor: CryptocurrencyConvertor
+    private val cryptocurrencyConvertor: CryptocurrencyConvertor,
+    private val sharedStream: SharedStream
 ) : CryptocurrencyServiceImplBase() {
+
+    override fun getCryptocurrencyByName(
+        request: Mono<CryptocurrencyRequest>
+    ): Flux<Cryptocurrency> {
+        return request.flatMapMany { cryptoRequest ->
+            val name = cryptoRequest.name.name
+            sharedStream.flux.filter { crypto ->
+                crypto.cryptocurrencyName == name
+            }
+        }
+    }
+
 
     override fun findAllCryptocurrencies(
         request: Mono<CryptocurrencyRequest>

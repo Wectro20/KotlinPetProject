@@ -1,0 +1,22 @@
+spring:
+  data:
+    mongodb:
+      database: cryptocurrency-price
+      host: mongo
+      port: 27017
+  grpc:
+    port: 9090
+
+  kafka:
+    properties:
+      schema:
+        registry:
+          url: http://schema-registry:8081
+    bootstrap-servers: kafka:9092
+
+cryptocurrency:
+  name: BTC,ETH,XRP
+
+nats:
+  connection:
+    url: nats://nats:4222
