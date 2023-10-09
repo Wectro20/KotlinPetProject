@@ -18,6 +18,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ContextConfiguration
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
@@ -83,19 +83,31 @@ class CryptocurrencyGrpcServiceTest(
     fun findAllCryptocurrenciesTest() {
         val request = CryptocurrencyRequest.newBuilder().build()
 
-        val responseList = cryptocurrencyDomainList.map {
-            CryptocurrencyResponse
-                .newBuilder()
-                .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(it))
-                .build()
+        val responseList = Mono.just(cryptocurrencyDomainList.map {
+            cryptocurrencyConvertor.cryptocurrencyToProto(it)
+        })
+            .map { allCryptocurrency ->
+                CryptocurrencyResponse.newBuilder().apply {
+                    cryptocurrencyList = CryptocurrencyOuterClass.CryptocurrencyList.newBuilder()
+                        .addAllCryptocurrency(allCryptocurrency)
+                        .build()
+                }.build()
+            }
+
+        val expectedCryptocurrencyList = cryptocurrencyDomainList.map {
+            cryptocurrencyConvertor.cryptocurrencyToProto(it)
         }
 
-        every { stub.findAllCryptocurrencies(request) } returns Flux.fromIterable(responseList)
+        every { stub.findAllCryptocurrencies(request) } returns responseList
 
-        val responseFlux = stub.findAllCryptocurrencies(request)
+        val responseMono = stub.findAllCryptocurrencies(request)
 
-        StepVerifier.create(responseFlux)
-            .expectNextCount(responseList.size.toLong())
+        StepVerifier.create(responseMono)
+            .expectNextMatches { response ->
+                val actualList = response.cryptocurrencyList.cryptocurrencyList
+                assertEquals(expectedCryptocurrencyList, actualList)
+                true
+            }
             .verifyComplete()
     }
 
@@ -156,19 +168,31 @@ class CryptocurrencyGrpcServiceTest(
 
         val sortedList = cryptocurrencyDomainList.filter { it.cryptocurrencyName == cryptoName }
 
-        val responseList = sortedList.map {
-            CryptocurrencyResponse
-                .newBuilder()
-                .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(it))
-                .build()
+        val responseList = Mono.just(sortedList.map {
+            cryptocurrencyConvertor.cryptocurrencyToProto(it)
+        })
+            .map { allCryptocurrency ->
+                CryptocurrencyResponse.newBuilder().apply {
+                    cryptocurrencyList = CryptocurrencyOuterClass.CryptocurrencyList.newBuilder()
+                        .addAllCryptocurrency(allCryptocurrency)
+                        .build()
+                }.build()
+            }
+
+        val expectedCryptocurrencyList = sortedList.map {
+            cryptocurrencyConvertor.cryptocurrencyToProto(it)
         }
 
-        every { stub.getCryptocurrencyPages(request) } returns Flux.fromIterable(responseList)
+        every { stub.getCryptocurrencyPages(request) } returns responseList
 
-        val responseFlux = stub.getCryptocurrencyPages(request)
+        val responseMono = stub.getCryptocurrencyPages(request)
 
-        StepVerifier.create(responseFlux)
-            .expectNextCount(sortedList.size.toLong())
+        StepVerifier.create(responseMono)
+            .expectNextMatches { response ->
+                val actualList = response.cryptocurrencyList.cryptocurrencyList
+                assertEquals(expectedCryptocurrencyList, actualList)
+                true
+            }
             .verifyComplete()
     }
 

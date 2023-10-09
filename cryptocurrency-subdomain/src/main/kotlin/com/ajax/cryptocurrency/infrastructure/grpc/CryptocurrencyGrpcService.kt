@@ -1,11 +1,12 @@
 package com.ajax.cryptocurrency.infrastructure.grpc
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.Cryptocurrency
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc.CryptocurrencyServiceImplBase
 import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyService
 import com.ajax.cryptocurrency.infrastructure.shared.stream.SharedStream
 import com.google.protobuf.ByteString
 import org.springframework.stereotype.Component
@@ -14,7 +15,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class CryptocurrencyGrpcService(
-    private val cryptocurrencyServiceImpl: CryptocurrencyServiceImpl,
+    private val cryptocurrencyService: CryptocurrencyService,
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     private val sharedStream: SharedStream
 ) : CryptocurrencyServiceImplBase() {
@@ -33,22 +34,27 @@ class CryptocurrencyGrpcService(
 
     override fun findAllCryptocurrencies(
         request: Mono<CryptocurrencyRequest>
-    ): Flux<CryptocurrencyResponse> {
-        return request.flatMapMany {
-            cryptocurrencyServiceImpl.findAll()
-                .map {
-                    CryptocurrencyResponse.newBuilder()
-                        .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(it))
-                        .build()
+    ): Mono<CryptocurrencyResponse> {
+        return request.flatMap {
+            cryptocurrencyService.findAll()
+                .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
+                .collectList()
+                .map { allCryptocurrency ->
+                    CryptocurrencyResponse.newBuilder().apply {
+                        cryptocurrencyList = CryptocurrencyOuterClass.CryptocurrencyList.newBuilder()
+                            .addAllCryptocurrency(allCryptocurrency)
+                            .build()
+                    }.build()
                 }
         }
     }
+
 
     override fun findMinMaxPriceByCryptocurrencyName(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(
+            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(
                 it.cryptocurrencyMinMax.name,
                 it.cryptocurrencyMinMax.sortOrder
             ).map { crypto ->
@@ -61,17 +67,18 @@ class CryptocurrencyGrpcService(
 
     override fun getCryptocurrencyPages(
         request: Mono<CryptocurrencyRequest>
-    ): Flux<CryptocurrencyResponse> {
-        return request.flatMapMany {
-            cryptocurrencyServiceImpl.getCryptocurrencyPages(
-                it.page.name,
-                it.page.pageNumber,
-                it.page.pageSize
-            ).map { pages ->
-                CryptocurrencyResponse.newBuilder()
-                    .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(pages))
-                    .build()
-            }
+    ): Mono<CryptocurrencyResponse> {
+        return request.flatMap {
+            cryptocurrencyService.findAll()
+                .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
+                .collectList()
+                .map { allCryptocurrency ->
+                    CryptocurrencyResponse.newBuilder().apply {
+                        cryptocurrencyList = CryptocurrencyOuterClass.CryptocurrencyList.newBuilder()
+                            .addAllCryptocurrency(allCryptocurrency)
+                            .build()
+                    }.build()
+                }
         }
     }
 
@@ -79,7 +86,7 @@ class CryptocurrencyGrpcService(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyServiceImpl.writeCsv(it.name.name).map { file ->
+            cryptocurrencyService.writeCsv(it.name.name).map { file ->
                 val fileBytes = ByteString.copyFrom(file.readBytes())
                 CryptocurrencyResponse.newBuilder().apply {
                     fileBuilder.setFile(fileBytes)
