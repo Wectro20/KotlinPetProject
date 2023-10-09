@@ -3,8 +3,8 @@ package com.ajax.cryptocurrency.natscontroller
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
 import com.ajax.cryptocurrency.config.TestConfig
+import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetAllController
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
 import io.mockk.every

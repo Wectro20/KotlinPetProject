@@ -6,7 +6,7 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.NatsSubject.GET_ALL_CRYPTOCURRENCIES_SUBJECT
 import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.application.nats.NatsController
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyService
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class NatsCryptocurrencyGetAllController (
-    private val cryptocurrencyServiceImpl: CryptocurrencyServiceImpl,
+    private val cryptocurrencyService: CryptocurrencyService,
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     override val connection: Connection
 ) : NatsController<CryptocurrencyRequest, CryptocurrencyResponse> {
@@ -24,7 +24,7 @@ class NatsCryptocurrencyGetAllController (
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
-        return cryptocurrencyServiceImpl.findAll()
+        return cryptocurrencyService.findAll()
             .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
             .collectList()
             .map { allCryptocurrency ->

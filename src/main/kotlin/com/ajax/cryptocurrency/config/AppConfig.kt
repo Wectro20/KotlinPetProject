@@ -34,7 +34,6 @@ class AppConfig(
         return server
     }
 
-
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(AppConfig::class.java)
     }

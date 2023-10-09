@@ -1,11 +1,10 @@
 package com.ajax.cryptocurrency.infrastructure.parser
 
-import com.ajax.cryptocurrency.application.mapper.CryptocurrencyMapper
+import com.ajax.cryptocurrency.application.lib.ScheduledBackgroundJobStarter
 import com.ajax.cryptocurrency.application.ports.parser.ParserInterface
 import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepository
 import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
 import com.ajax.cryptocurrency.infrastructure.kafka.CryptocurrencyKafkaProducer
-import com.ajax.cryptocurrency.application.lib.ScheduledBackgroundJobStarter
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -41,7 +40,7 @@ class Parser(
 
                 cryptocurrencyRepository.save(cryptocurrencyDomain)
                     .doAfterTerminate {
-                        cryptocurrencyKafkaProducer.sendCryptocurrencyToKafka(
+                        cryptocurrencyKafkaProducer.sendToKafka(
                             cryptocurrencyDomain
                         )
                     }.subscribe()
