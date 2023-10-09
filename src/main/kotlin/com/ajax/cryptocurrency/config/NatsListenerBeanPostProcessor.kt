@@ -22,11 +22,9 @@ class NatsListenerBeanPostProcessor : BeanPostProcessor {
             val parsedData = parser.parseFrom(message.data)
 
             handler(parsedData)
-                .subscribeOn(Schedulers.parallel())
-                .map { it.toByteArray() }
-                .flatMap { response ->
-                    Mono.fromCallable { connection.publish(message.replyTo, response) }
-                        .subscribeOn(Schedulers.parallel())
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext { response ->
+                    connection.publish(message.replyTo, response.toByteArray())
                 }
                 .subscribe()
         }.subscribe(subject)

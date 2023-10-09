@@ -45,8 +45,8 @@ dependencies {
 	implementation("com.salesforce.servicelibs:reactor-grpc-stub:1.2.4")
 	implementation("com.google.protobuf:protobuf-java:3.24.2")
 	implementation("com.google.protobuf:protobuf-java-util:3.20.1")
-	implementation ("org.springframework.kafka:spring-kafka")
-	implementation ("io.projectreactor.kafka:reactor-kafka")
+	implementation("org.springframework.kafka:spring-kafka")
+	implementation("io.projectreactor.kafka:reactor-kafka")
 	implementation("io.confluent:kafka-protobuf-serializer:7.4.0")
 	implementation(project(":nats-api"))
 
