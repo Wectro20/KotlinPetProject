@@ -68,14 +68,13 @@ class NatsCryptocurrencyGetAllControllerTest {
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
-            .expectNextMatches { response ->
+            .assertNext { response ->
                 val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
                 assertEquals(
                     cryptocurrencyList.map { it.cryptocurrencyName },
                     cryptoListFromResponse.map { it.cryptocurrencyName })
                 assertEquals(cryptocurrencyList.map { it.price }, cryptoListFromResponse.map { it.price })
                 assertEquals(cryptocurrencyList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
-                true
             }
             .verifyComplete()
 

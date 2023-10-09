@@ -24,7 +24,7 @@ class CryptocurrencyGrpcService(
     ): Flux<Cryptocurrency> {
         return request.flatMapMany { cryptoRequest ->
             val name = cryptoRequest.name.name
-            sharedStream.flux.filter { crypto ->
+            sharedStream.cryptocurrencies.filter { crypto ->
                 crypto.cryptocurrencyName == name
             }
         }

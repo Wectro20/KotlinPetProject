@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./gradlew build -x test
+./gradlew build
 
 docker build .
 

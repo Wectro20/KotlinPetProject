@@ -11,17 +11,19 @@ import reactor.kafka.sender.KafkaSender
 import reactor.kafka.sender.SenderOptions
 
 @Configuration
-class KafkaProducerConfig(
-    @Value("\${spring.kafka.bootstrap-servers}") var bootstrapServers: String,
-    @Value("\${spring.kafka.properties.schema.registry.url}") private var schemaRegistryUrl: String,) {
+class KafkaProducerConfig {
 
     @Bean
-    fun kafkaSender(): KafkaSender<String, Cryptocurrency> {
+    fun kafkaSender(
+        @Value("\${spring.kafka.bootstrap-servers}") bootstrapServers: String,
+        @Value("\${spring.kafka.properties.schema.registry.url}") schemaRegistryUrl: String
+    ): KafkaSender<String, Cryptocurrency> {
         val producerProps = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaProtobufSerializer::class.java.name,
-            "schema.registry.url" to schemaRegistryUrl)
+            "schema.registry.url" to schemaRegistryUrl
+        )
 
         val senderOptions = SenderOptions.create<String, Cryptocurrency>(producerProps)
         return KafkaSender.create(senderOptions)

@@ -22,13 +22,12 @@ class NatsCryptocurrencyGetCsvController(
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
-        return Mono.defer {
-            cryptocurrencyService.writeCsv(request.name.name)
-                .flatMap { file -> Mono.fromCallable { ByteString.copyFrom(file.readBytes()) } }
-                .map { fileBytes -> CryptocurrencyFile.newBuilder().setFile(fileBytes).build() }
-                .map { cryptocurrencyResponse ->
-                    CryptocurrencyResponse.newBuilder().setFile(cryptocurrencyResponse).build()
-                }
-        }
+        return cryptocurrencyService.writeCsv(request.name.name)
+            .map { file -> ByteString.copyFrom(file.readBytes()) }
+            .map { fileBytes ->
+                CryptocurrencyResponse.newBuilder()
+                    .apply { fileBuilder.setFile(fileBytes) }
+                    .build()
+            }
     }
 }

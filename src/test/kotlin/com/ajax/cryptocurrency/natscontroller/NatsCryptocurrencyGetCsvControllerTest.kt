@@ -53,7 +53,7 @@ class NatsCryptocurrencyGetCsvControllerTest {
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
-            .expectNext( expectedResponse )
+            .expectNext(expectedResponse)
             .verifyComplete()
 
         verify { cryptocurrencyService.writeCsv(fileName) }
