@@ -40,7 +40,6 @@ services:
     image: confluentinc/cp-schema-registry:latest
     depends_on:
       - kafka
-      - zookeeper
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092

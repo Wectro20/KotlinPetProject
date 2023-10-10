@@ -1,8 +1,8 @@
 package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
-import com.ajax.cryptocurrency.nats.NatsCryptocurrencyGetCsvController
-import com.ajax.cryptocurrency.service.CryptocurrencyService
+import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetCsvController
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
 import com.google.protobuf.ByteString
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -19,7 +19,7 @@ import java.io.File
 @ExtendWith(MockKExtension::class)
 class NatsCryptocurrencyGetCsvControllerTest {
     @MockK
-    private lateinit var cryptocurrencyService: CryptocurrencyService
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
 
     @Suppress("UnusedPrivateProperty")
     @MockK
@@ -29,7 +29,7 @@ class NatsCryptocurrencyGetCsvControllerTest {
 
     @BeforeEach
     fun setUp() {
-        controller = NatsCryptocurrencyGetCsvController(cryptocurrencyService, connection)
+        controller = NatsCryptocurrencyGetCsvController(cryptocurrencyServiceImpl, connection)
     }
 
     @Test
@@ -40,7 +40,7 @@ class NatsCryptocurrencyGetCsvControllerTest {
 
         val mockFile = File("src/test/resources/expected.csv")
         every {
-            cryptocurrencyService.writeCsv(fileName)
+            cryptocurrencyServiceImpl.writeCsv(fileName)
         } returns Mono.just(mockFile)
 
         val expectedResponse = CryptocurrencyOuterClass.CryptocurrencyResponse.newBuilder()
@@ -56,7 +56,7 @@ class NatsCryptocurrencyGetCsvControllerTest {
             .expectNext(expectedResponse)
             .verifyComplete()
 
-        verify { cryptocurrencyService.writeCsv(fileName) }
+        verify { cryptocurrencyServiceImpl.writeCsv(fileName) }
     }
 }
 

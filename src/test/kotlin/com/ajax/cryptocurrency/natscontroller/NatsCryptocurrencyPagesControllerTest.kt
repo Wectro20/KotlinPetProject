@@ -2,12 +2,11 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.nats.NatsCryptocurrencyPagesController
-import com.ajax.cryptocurrency.service.CryptocurrencyService
-import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.toDomain
-import com.ajax.cryptocurrency.toProto
+import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.config.TestConfig
+import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyPagesController
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -21,18 +20,23 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+@SpringBootTest
 @ExtendWith(MockKExtension::class)
+@ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyPagesControllerTest {
     @MockK
-    private lateinit var cryptocurrencyService: CryptocurrencyService
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
 
-    @MockK
+    @Autowired
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     @Suppress("UnusedPrivateProperty")
@@ -45,25 +49,24 @@ class NatsCryptocurrencyPagesControllerTest {
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
 
-    private val cryptocurrencyList = listOf(
-        Cryptocurrency(id, "BTC", 12341f, time),
-        Cryptocurrency(id, "BTC", 23455f, time),
-        Cryptocurrency(id, "ETH", 1200f, time),
-        Cryptocurrency(id, "ETH", 1300f, time),
-        Cryptocurrency(id, "ETH", 1400f, time),
-        Cryptocurrency(id, "XRP", 200f, time),
-        Cryptocurrency(id, "XRP", 300f, time),
-        Cryptocurrency(id, "XRP", 520f, time)
+    private val cryptocurrencyDomainList = listOf(
+        CryptocurrencyDomain(id, "BTC", 12341f, time),
+        CryptocurrencyDomain(id, "BTC", 23455f, time),
+        CryptocurrencyDomain(id, "ETH", 1200f, time),
+        CryptocurrencyDomain(id, "ETH", 1300f, time),
+        CryptocurrencyDomain(id, "ETH", 1400f, time),
+        CryptocurrencyDomain(id, "XRP", 200f, time),
+        CryptocurrencyDomain(id, "XRP", 300f, time),
+        CryptocurrencyDomain(id, "XRP", 520f, time)
     )
 
     @BeforeEach
     fun setUp() {
-        cryptocurrencyService = mockk()
-        cryptocurrencyConvertor = mockk()
+        cryptocurrencyServiceImpl = mockk()
         connection = mockk()
 
         controller = NatsCryptocurrencyPagesController(
-            cryptocurrencyService,
+            cryptocurrencyServiceImpl,
             cryptocurrencyConvertor,
             connection
         )
@@ -72,7 +75,7 @@ class NatsCryptocurrencyPagesControllerTest {
     @ParameterizedTest
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun testHandler(cryptoName: String) {
-        val sortedList = cryptocurrencyList.filter { it.cryptocurrencyName == cryptoName }
+        val sortedList = cryptocurrencyDomainList.filter { it.cryptocurrencyName == cryptoName }
 
         val request = CryptocurrencyRequest.newBuilder()
             .setPage(
@@ -84,21 +87,19 @@ class NatsCryptocurrencyPagesControllerTest {
             .build()
 
         every {
-            cryptocurrencyService.getCryptocurrencyPages(cryptoName, 1, 10)
-        } returns Flux.fromIterable(sortedList) // Returning a Flux instead of a blocking response
-
-        sortedList.forEach { crypto ->
-            every {
-                cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
-            } returns crypto.toProto()
-        }
+            cryptocurrencyServiceImpl.getCryptocurrencyPages(cryptoName, 1, 10)
+        } returns Flux.fromIterable(sortedList)
 
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
             .assertNext { response ->
                 val cryptoListFromResponse =
-                    response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+                    response.cryptocurrencyList.cryptocurrencyList.map {
+                        cryptocurrencyConvertor.protoToCryptocurrency(
+                            it
+                        )
+                    }
 
                 assertEquals(sortedList.map { it.cryptocurrencyName },
                     cryptoListFromResponse.map { it.cryptocurrencyName })
@@ -108,13 +109,7 @@ class NatsCryptocurrencyPagesControllerTest {
             .verifyComplete()
 
         verify {
-            cryptocurrencyService.getCryptocurrencyPages(cryptoName, 1, 10)
-        }
-
-        sortedList.forEach { crypto ->
-            verify {
-                cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
-            }
+            cryptocurrencyServiceImpl.getCryptocurrencyPages(cryptoName, 1, 10)
         }
     }
 }

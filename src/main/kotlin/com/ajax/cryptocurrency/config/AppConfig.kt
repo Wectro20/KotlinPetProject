@@ -1,6 +1,6 @@
 package com.ajax.cryptocurrency.config
 
-import com.ajax.cryptocurrency.grpc.service.CryptocurrencyGrpcService
+import com.ajax.cryptocurrency.infrastructure.grpc.CryptocurrencyGrpcService
 import io.grpc.Server
 import io.grpc.ServerBuilder
 import io.nats.client.Connection

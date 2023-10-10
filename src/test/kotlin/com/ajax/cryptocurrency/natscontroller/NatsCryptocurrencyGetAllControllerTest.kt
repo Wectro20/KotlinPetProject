@@ -2,12 +2,11 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.nats.NatsCryptocurrencyGetAllController
-import com.ajax.cryptocurrency.service.CryptocurrencyService
-import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.toDomain
-import com.ajax.cryptocurrency.toProto
+import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.config.TestConfig
+import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetAllController
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -18,19 +17,21 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+@SpringBootTest
 @ExtendWith(MockKExtension::class)
+@ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyGetAllControllerTest {
     @MockK
-    private lateinit var cryptocurrencyService: CryptocurrencyService
-
-    @MockK
-    private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
 
     @Suppress("UnusedPrivateProperty")
     @MockK
@@ -39,17 +40,20 @@ class NatsCryptocurrencyGetAllControllerTest {
     @InjectMockKs
     private lateinit var controller: NatsCryptocurrencyGetAllController
 
+    @Autowired
+    private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
+
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
-    private val cryptocurrencyList = listOf(
-        Cryptocurrency(id, "BTC", 12341f, time),
-        Cryptocurrency(id, "BTC", 23455f, time),
-        Cryptocurrency(id, "ETH", 1200f, time),
-        Cryptocurrency(id, "ETH", 1300f, time),
-        Cryptocurrency(id, "ETH", 1400f, time),
-        Cryptocurrency(id, "XRP", 200f, time),
-        Cryptocurrency(id, "XRP", 300f, time),
-        Cryptocurrency(id, "XRP", 520f, time)
+    private val cryptocurrencyDomainLists = listOf(
+        CryptocurrencyDomain(id, "BTC", 12341f, time),
+        CryptocurrencyDomain(id, "BTC", 23455f, time),
+        CryptocurrencyDomain(id, "ETH", 1200f, time),
+        CryptocurrencyDomain(id, "ETH", 1300f, time),
+        CryptocurrencyDomain(id, "ETH", 1400f, time),
+        CryptocurrencyDomain(id, "XRP", 200f, time),
+        CryptocurrencyDomain(id, "XRP", 300f, time),
+        CryptocurrencyDomain(id, "XRP", 520f, time)
     )
 
 
@@ -57,33 +61,29 @@ class NatsCryptocurrencyGetAllControllerTest {
     fun testHandler() {
         val request = CryptocurrencyRequest.newBuilder().build()
 
-        every { cryptocurrencyService.findAll() } returns Flux.fromIterable(cryptocurrencyList)
-
-        cryptocurrencyList.forEach { crypto ->
-            every {
-                cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
-            } returns crypto.toProto()
-        }
+        every { cryptocurrencyServiceImpl.findAll() } returns Flux.fromIterable(cryptocurrencyDomainLists)
 
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
             .assertNext { response ->
-                val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+                val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map {
+                    cryptocurrencyConvertor.protoToCryptocurrency(it)
+                }
                 assertEquals(
-                    cryptocurrencyList.map { it.cryptocurrencyName },
+                    cryptocurrencyDomainLists.map { it.cryptocurrencyName },
                     cryptoListFromResponse.map { it.cryptocurrencyName })
-                assertEquals(cryptocurrencyList.map { it.price }, cryptoListFromResponse.map { it.price })
-                assertEquals(cryptocurrencyList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
+                assertEquals(
+                    cryptocurrencyDomainLists.map { it.price },
+                    cryptoListFromResponse.map { it.price }
+                )
+                assertEquals(
+                    cryptocurrencyDomainLists.map { it.createdTime },
+                    cryptoListFromResponse.map { it.createdTime }
+                )
             }
             .verifyComplete()
 
-        verify { cryptocurrencyService.findAll() }
-
-        cryptocurrencyList.forEach { crypto ->
-            verify {
-                cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
-            }
-        }
+        verify { cryptocurrencyServiceImpl.findAll() }
     }
 }
