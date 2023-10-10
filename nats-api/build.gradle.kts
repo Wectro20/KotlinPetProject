@@ -1,9 +1,5 @@
 import com.google.protobuf.gradle.id
 
-plugins {
-    id("com.google.protobuf") version "0.9.4"
-}
-
 dependencies {
     implementation("io.projectreactor:reactor-core:3.5.10")
 }
