@@ -8,6 +8,7 @@ import com.ajax.cryptocurrency.service.convertproto.CryptocurrencyConvertor
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 
 @Component
 class NatsCryptocurrencyGetMaxPriceController(
@@ -20,14 +21,12 @@ class NatsCryptocurrencyGetMaxPriceController(
 
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
-    override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
-        val cryptocurrency = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(request.name.name, -1)
+    override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
+        return cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(request.name.name, -1)
             .map {
                 CryptocurrencyResponse.newBuilder()
                     .setCryptocurrency(cryptocurrencyConvertor.cryptocurrencyToProto(it))
                     .build()
-            }.block()!!
-
-        return cryptocurrency
+            }
     }
 }

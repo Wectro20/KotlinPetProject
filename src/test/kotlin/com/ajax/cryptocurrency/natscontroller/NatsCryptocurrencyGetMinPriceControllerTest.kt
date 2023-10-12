@@ -1,5 +1,6 @@
 package com.ajax.cryptocurrency.natscontroller
 
+import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.model.Cryptocurrency
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -57,19 +59,23 @@ class NatsCryptocurrencyGetMinPriceControllerTest {
 
         every {
             cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, 1)
-        } returns Mono.just(crypto)
+        } returns Mono.just(crypto) // Returning a Mono instead of blocking response
 
         every {
             cryptocurrencyConvertor.cryptocurrencyToProto(crypto)
         } returns crypto.toProto()
 
-        val response = controller.handler(request)
+        val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
-        val cryptoFromResponse = response.cryptocurrency.toDomain()
+        StepVerifier.create(responseMono)
+            .assertNext { response ->
+                val cryptoFromResponse = response.cryptocurrency.toDomain()
 
-        assertEquals(crypto.cryptocurrencyName, cryptoFromResponse.cryptocurrencyName)
-        assertEquals(crypto.price, cryptoFromResponse.price)
-        assertEquals(crypto.createdTime, cryptoFromResponse.createdTime)
+                assertEquals(crypto.cryptocurrencyName, cryptoFromResponse.cryptocurrencyName)
+                assertEquals(crypto.price, cryptoFromResponse.price)
+                assertEquals(crypto.createdTime, cryptoFromResponse.createdTime)
+            }
+            .verifyComplete()
 
         verify { cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, 1) }
         verify { cryptocurrencyConvertor.cryptocurrencyToProto(crypto) }

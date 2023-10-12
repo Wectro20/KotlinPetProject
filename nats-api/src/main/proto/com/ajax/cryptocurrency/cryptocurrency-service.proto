@@ -9,4 +9,5 @@ service CryptocurrencyService {
   rpc FindAllCryptocurrencies (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
   rpc GetCryptocurrencyPages (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
   rpc WriteCsvFile (CryptocurrencyRequest) returns (CryptocurrencyResponse);
+  rpc GetCryptocurrencyByName (CryptocurrencyRequest) returns (stream Cryptocurrency);
 }

@@ -22,6 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -83,7 +85,7 @@ class NatsCryptocurrencyPagesControllerTest {
 
         every {
             cryptocurrencyService.getCryptocurrencyPages(cryptoName, 1, 10)
-        } returns Flux.fromIterable(sortedList)
+        } returns Flux.fromIterable(sortedList) // Returning a Flux instead of a blocking response
 
         sortedList.forEach { crypto ->
             every {
@@ -91,13 +93,19 @@ class NatsCryptocurrencyPagesControllerTest {
             } returns crypto.toProto()
         }
 
-        val response = controller.handler(request)
-        val cryptoListFromResponse =
-            response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+        val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
-        assertEquals(sortedList.map { it.cryptocurrencyName }, cryptoListFromResponse.map { it.cryptocurrencyName })
-        assertEquals(sortedList.map { it.price }, cryptoListFromResponse.map { it.price })
-        assertEquals(sortedList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
+        StepVerifier.create(responseMono)
+            .assertNext { response ->
+                val cryptoListFromResponse =
+                    response.cryptocurrencyList.cryptocurrencyList.map { it.toDomain() }
+
+                assertEquals(sortedList.map { it.cryptocurrencyName },
+                    cryptoListFromResponse.map { it.cryptocurrencyName })
+                assertEquals(sortedList.map { it.price }, cryptoListFromResponse.map { it.price })
+                assertEquals(sortedList.map { it.createdTime }, cryptoListFromResponse.map { it.createdTime })
+            }
+            .verifyComplete()
 
         verify {
             cryptocurrencyService.getCryptocurrencyPages(cryptoName, 1, 10)

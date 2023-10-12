@@ -9,6 +9,7 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 
 @Component
 class NatsCryptocurrencyGetCsvController(
@@ -20,15 +21,13 @@ class NatsCryptocurrencyGetCsvController(
 
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
-    override fun handler(request: CryptocurrencyRequest): CryptocurrencyResponse {
-        val cryptocurrencyFile = cryptocurrencyService.writeCsv(request.name.name)
-
-        val fileBytes = ByteString.copyFrom(cryptocurrencyFile.map { file -> file.readBytes() }.block())
-
-        val cryptocurrencyResponse = CryptocurrencyFile.newBuilder().setFile(fileBytes)
-
-        return CryptocurrencyResponse.newBuilder()
-            .setFile(cryptocurrencyResponse)
-            .build()
+    override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
+        return cryptocurrencyService.writeCsv(request.name.name)
+            .map { file -> ByteString.copyFrom(file.readBytes()) }
+            .map { fileBytes ->
+                CryptocurrencyResponse.newBuilder()
+                    .apply { fileBuilder.setFile(fileBytes) }
+                    .build()
+            }
     }
 }

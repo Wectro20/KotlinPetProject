@@ -4,7 +4,6 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc
-import com.ajax.cryptocurrency.grpc.service.CryptocurrencyGrpcService
 import com.ajax.cryptocurrency.model.Cryptocurrency
 import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
 import com.ajax.cryptocurrency.service.CryptocurrencyService
