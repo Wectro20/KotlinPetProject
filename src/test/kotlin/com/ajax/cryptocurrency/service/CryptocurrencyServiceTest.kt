@@ -1,11 +1,11 @@
 package com.ajax.cryptocurrency.service
 
-import com.ajax.cryptocurrency.model.Cryptocurrency
-import com.ajax.cryptocurrency.repository.impl.CryptocurrencyRepositoryImpl
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
+import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryOutPortImpl
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,33 +26,33 @@ import java.time.ZoneOffset
 @ExtendWith(MockKExtension::class)
 class CryptocurrencyServiceTest {
     @MockK
-    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryImpl
+    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPortImpl
 
-    private lateinit var cryptocurrencyService: CryptocurrencyService
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     private val expectedCsvFile = "src/test/resources/expected.csv"
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
+    private val id: String = "63b346f12b207611fc867ff3"
     private val cryptoMap = mapOf(
-        "BTC" to Cryptocurrency(id, "BTC", 12341f, time),
-        "ETH" to Cryptocurrency(id, "ETH", 12341f, time),
-        "XRP" to Cryptocurrency(id, "XRP", 12341f, time)
+        "BTC" to DomainCryptocurrency(id, "BTC", 12341f, time),
+        "ETH" to DomainCryptocurrency(id, "ETH", 12341f, time),
+        "XRP" to DomainCryptocurrency(id, "XRP", 12341f, time)
     )
 
-    private val cryptocurrencyList = listOf(
-        Cryptocurrency(id, "BTC", 12341f, time),
-        Cryptocurrency(id, "BTC", 23455f, time),
-        Cryptocurrency(id, "ETH", 1200f, time),
-        Cryptocurrency(id, "ETH", 1300f, time),
-        Cryptocurrency(id, "ETH", 1400f, time),
-        Cryptocurrency(id, "XRP", 200f, time),
-        Cryptocurrency(id, "XRP", 300f, time),
-        Cryptocurrency(id, "XRP", 520f, time)
+    private val domainCryptocurrencyLists = listOf(
+        DomainCryptocurrency(id, "BTC", 12341f, time),
+        DomainCryptocurrency(id, "BTC", 23455f, time),
+        DomainCryptocurrency(id, "ETH", 1200f, time),
+        DomainCryptocurrency(id, "ETH", 1300f, time),
+        DomainCryptocurrency(id, "ETH", 1400f, time),
+        DomainCryptocurrency(id, "XRP", 200f, time),
+        DomainCryptocurrency(id, "XRP", 300f, time),
+        DomainCryptocurrency(id, "XRP", 520f, time)
     )
 
     @BeforeEach
     fun setup() {
-        cryptocurrencyService = CryptocurrencyService(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
+        cryptocurrencyServiceImpl = CryptocurrencyService(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
     }
 
     @ParameterizedTest
@@ -61,7 +61,7 @@ class CryptocurrencyServiceTest {
         every {
             cryptocurrencyRepository.findMinMaxByName(cryptoName, 1)
         } returns Mono.just(cryptoMap[cryptoName]!!)
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, 1)
+        val result = cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(cryptoName, 1)
         StepVerifier
             .create(result)
             .consumeNextWith { actual ->
@@ -79,7 +79,7 @@ class CryptocurrencyServiceTest {
         every {
             cryptocurrencyRepository.findMinMaxByName(cryptoName, -1)
         } returns Mono.just(cryptoMap[cryptoName]!!)
-        val result = cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)
+        val result = cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)
         StepVerifier
             .create(result)
             .consumeNextWith { actual ->
@@ -94,13 +94,13 @@ class CryptocurrencyServiceTest {
     @ParameterizedTest
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun getCryptoPageTest(cryptoName: String) {
-        val sortedList = cryptocurrencyList.filter { it.cryptocurrencyName == cryptoName }
+        val sortedList = domainCryptocurrencyLists.filter { it.cryptocurrencyName == cryptoName }
             .sortedBy { it.price }
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
         every {
             cryptocurrencyRepository.findCryptocurrencyPriceByCryptocurrencyName(cryptoName, pageable)
         } returns Flux.fromIterable(sortedList)
-        val result = cryptocurrencyService.getCryptocurrencyPages(cryptoName, 0, 10)
+        val result = cryptocurrencyServiceImpl.getCryptocurrencyPages(cryptoName, 0, 10)
         StepVerifier
             .create(result)
             .expectNextCount(sortedList.size.toLong())
@@ -116,7 +116,7 @@ class CryptocurrencyServiceTest {
         every { cryptocurrencyRepository.findMinMaxByName("XRP", -1) } returns Mono.just(cryptoMap["XRP"]!!)
         every { cryptocurrencyRepository.findMinMaxByName("XRP", 1) } returns Mono.just(cryptoMap["XRP"]!!)
 
-        val resultMono = cryptocurrencyService.writeCsv("cryptocurrency-prices-test")
+        val resultMono = cryptocurrencyServiceImpl.writeCsv("cryptocurrency-prices-test")
         StepVerifier.create(resultMono)
             .expectNextMatches { result ->
                 val actual = isEqual(Paths.get(expectedCsvFile), Paths.get(result.absolutePath))

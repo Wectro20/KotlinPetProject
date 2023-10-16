@@ -6,8 +6,8 @@ package com.ajax.cryptocurrency;
 
 service CryptocurrencyService {
   rpc FindMinMaxPriceByCryptocurrencyName (CryptocurrencyRequest) returns (CryptocurrencyResponse);
-  rpc FindAllCryptocurrencies (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
-  rpc GetCryptocurrencyPages (CryptocurrencyRequest) returns (stream CryptocurrencyResponse);
+  rpc FindAllCryptocurrencies (CryptocurrencyRequest) returns (CryptocurrencyResponse);
+  rpc GetCryptocurrencyPages (CryptocurrencyRequest) returns (CryptocurrencyResponse);
   rpc WriteCsvFile (CryptocurrencyRequest) returns (CryptocurrencyResponse);
   rpc GetCryptocurrencyByName (CryptocurrencyRequest) returns (stream Cryptocurrency);
 }
