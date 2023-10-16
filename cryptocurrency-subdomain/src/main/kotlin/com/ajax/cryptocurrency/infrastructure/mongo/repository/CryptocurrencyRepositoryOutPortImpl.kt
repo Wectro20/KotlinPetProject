@@ -1,8 +1,8 @@
 package com.ajax.cryptocurrency.infrastructure.mongo.repository
 
-import com.ajax.cryptocurrency.application.mapper.CryptocurrencyMapper
-import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepository
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.infrastructure.mapper.CryptocurrencyMapper
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.infrastructure.mongo.entity.CryptocurrencyEntity
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -14,19 +14,19 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Repository
-class CryptocurrencyRepositoryImpl(
+class CryptocurrencyRepositoryOutPortImpl(
     private val reactiveMongoTemplate: ReactiveMongoTemplate,
     private val cryptocurrencyMapper: CryptocurrencyMapper
-) : CryptocurrencyRepository {
-    override fun save(cryptocurrencyDomain: CryptocurrencyDomain): Mono<CryptocurrencyDomain> =
-        reactiveMongoTemplate.save(cryptocurrencyMapper.toEntity(cryptocurrencyDomain))
+) : CryptocurrencyRepositoryOutPort {
+    override fun save(domainCryptocurrency: DomainCryptocurrency): Mono<DomainCryptocurrency> =
+        reactiveMongoTemplate.save(cryptocurrencyMapper.toEntity(domainCryptocurrency))
             .map { cryptocurrencyMapper.toDomain(it) }
 
-    override fun findAll(): Flux<CryptocurrencyDomain> =
+    override fun findAll(): Flux<DomainCryptocurrency> =
         reactiveMongoTemplate.findAll(CryptocurrencyEntity::class.java)
             .map { cryptocurrencyMapper.toDomain(it) }
 
-    override fun findMinMaxByName(cryptocurrencyName: String, sort: Int): Mono<CryptocurrencyDomain> {
+    override fun findMinMaxByName(cryptocurrencyName: String, sort: Int): Mono<DomainCryptocurrency> {
         val matchCriteria = Criteria.where("cryptocurrencyName").`is`(cryptocurrencyName)
         val sortOrder = Sort.by(if (sort == 1) Sort.Order.asc("price") else Sort.Order.desc("price"))
         val query = Query().addCriteria(matchCriteria).with(sortOrder).limit(1)
@@ -35,7 +35,7 @@ class CryptocurrencyRepositoryImpl(
             .map { cryptocurrencyMapper.toDomain(it) }
     }
 
-    override fun findAllBy(pageable: Pageable): Flux<CryptocurrencyDomain> {
+    override fun findAllBy(pageable: Pageable): Flux<DomainCryptocurrency> {
         val query = Query()
             .with(pageable)
 
@@ -46,7 +46,7 @@ class CryptocurrencyRepositoryImpl(
     override fun findCryptocurrencyPriceByCryptocurrencyName(
         name: String,
         pageable: Pageable
-    ): Flux<CryptocurrencyDomain> {
+    ): Flux<DomainCryptocurrency> {
         val matchCriteria = Criteria.where("cryptocurrencyName").`is`(name)
         val query = Query().addCriteria(matchCriteria)
             .with(pageable)

@@ -3,11 +3,11 @@ package com.ajax.cryptocurrency.natscontroller
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.config.TestConfig
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetMaxPriceController
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -32,7 +32,7 @@ import java.time.ZoneOffset
 @ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyGetMaxPriceControllerTest {
     @MockK
-    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     @Autowired
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
@@ -45,12 +45,12 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
     private lateinit var controller: NatsCryptocurrencyGetMaxPriceController
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
+    private val id: String = "63b346f12b207611fc867ff3"
 
-    private val cryptocurrencyDomainMap = mapOf(
-        "BTC" to CryptocurrencyDomain(id, "BTC", 12341f, time),
-        "ETH" to CryptocurrencyDomain(id, "ETH", 12341f, time),
-        "XRP" to CryptocurrencyDomain(id, "XRP", 12341f, time)
+    private val domainCryptocurrencyMap = mapOf(
+        "BTC" to DomainCryptocurrency(id, "BTC", 12341f, time),
+        "ETH" to DomainCryptocurrency(id, "ETH", 12341f, time),
+        "XRP" to DomainCryptocurrency(id, "XRP", 12341f, time)
     )
 
     @ParameterizedTest
@@ -59,7 +59,7 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
         val name = CryptocurrencyName.newBuilder().setName(cryptoName).build()
         val request = CryptocurrencyRequest.newBuilder().setName(name).build()
 
-        val crypto = cryptocurrencyDomainMap[cryptoName]!!
+        val crypto = domainCryptocurrencyMap[cryptoName]!!
 
         every {
             cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)

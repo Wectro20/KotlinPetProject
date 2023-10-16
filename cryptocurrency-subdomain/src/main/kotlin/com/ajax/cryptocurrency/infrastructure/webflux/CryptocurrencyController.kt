@@ -1,7 +1,7 @@
 package com.ajax.cryptocurrency.infrastructure.webflux
 
-import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyService
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import jakarta.validation.constraints.Min
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpHeaders
@@ -18,32 +18,32 @@ import reactor.core.publisher.Mono
 @RestController
 @RequestMapping("/cryptocurrencies")
 @Validated
-class CryptocurrencyController(private val cryptocurrencyService: CryptocurrencyService) {
+class CryptocurrencyController(private val cryptocurrencyServiceInPort: CryptocurrencyServiceInPort) {
 
     @GetMapping("/findall")
-    fun getAll(): Flux<CryptocurrencyDomain> = cryptocurrencyService.findAll()
+    fun getAll(): Flux<DomainCryptocurrency> = cryptocurrencyServiceInPort.findAll()
 
     @GetMapping("/minprice")
-    fun getMinCryptocurrencyPrice(@RequestParam name: String): Mono<CryptocurrencyDomain> =
-        cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, 1)
+    fun getMinCryptocurrencyPrice(@RequestParam name: String): Mono<DomainCryptocurrency> =
+        cryptocurrencyServiceInPort.findMinMaxPriceByCryptocurrencyName(name, 1)
 
     @GetMapping("/maxprice")
-    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): Mono<CryptocurrencyDomain> =
-        cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(name, -1)
+    fun getMaxCryptocurrencyPrice(@RequestParam() name: String): Mono<DomainCryptocurrency> =
+        cryptocurrencyServiceInPort.findMinMaxPriceByCryptocurrencyName(name, -1)
 
     @GetMapping
     fun getCryptocurrencyByPages(
         @RequestParam(required = false) name: String?,
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
-    ): Flux<CryptocurrencyDomain> = cryptocurrencyService.getCryptocurrencyPages(name, pageNumber, size)
+    ): Flux<DomainCryptocurrency> = cryptocurrencyServiceInPort.getCryptocurrencyPages(name, pageNumber, size)
 
 
     @GetMapping("/csv")
     fun downloadFile(
         @RequestParam(defaultValue = "cryptocurrency-report") fileName: String
     ): Mono<ResponseEntity<FileSystemResource>> {
-        return cryptocurrencyService.writeCsv(fileName).map { file ->
+        return cryptocurrencyServiceInPort.writeCsv(fileName).map { file ->
                 val headers = HttpHeaders()
                 headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$fileName.csv")
 

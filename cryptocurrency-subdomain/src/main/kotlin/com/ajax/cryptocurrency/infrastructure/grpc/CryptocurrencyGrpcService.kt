@@ -5,8 +5,8 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass.Cryptocurrency
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc.CryptocurrencyServiceImplBase
-import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyService
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
 import com.ajax.cryptocurrency.infrastructure.shared.stream.SharedStream
 import com.google.protobuf.ByteString
 import org.springframework.stereotype.Component
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class CryptocurrencyGrpcService(
-    private val cryptocurrencyService: CryptocurrencyService,
+    private val cryptocurrencyServiceInPort: CryptocurrencyServiceInPort,
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     private val sharedStream: SharedStream
 ) : CryptocurrencyServiceImplBase() {
@@ -36,7 +36,7 @@ class CryptocurrencyGrpcService(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyService.findAll()
+            cryptocurrencyServiceInPort.findAll()
                 .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
                 .collectList()
                 .map { allCryptocurrency ->
@@ -54,7 +54,7 @@ class CryptocurrencyGrpcService(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyService.findMinMaxPriceByCryptocurrencyName(
+            cryptocurrencyServiceInPort.findMinMaxPriceByCryptocurrencyName(
                 it.cryptocurrencyMinMax.name,
                 it.cryptocurrencyMinMax.sortOrder
             ).map { crypto ->
@@ -69,7 +69,7 @@ class CryptocurrencyGrpcService(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyService.findAll()
+            cryptocurrencyServiceInPort.findAll()
                 .map { cryptocurrencyConvertor.cryptocurrencyToProto(it) }
                 .collectList()
                 .map { allCryptocurrency ->
@@ -86,7 +86,7 @@ class CryptocurrencyGrpcService(
         request: Mono<CryptocurrencyRequest>
     ): Mono<CryptocurrencyResponse> {
         return request.flatMap {
-            cryptocurrencyService.writeCsv(it.name.name).map { file ->
+            cryptocurrencyServiceInPort.writeCsv(it.name.name).map { file ->
                 val fileBytes = ByteString.copyFrom(file.readBytes())
                 CryptocurrencyResponse.newBuilder().apply {
                     fileBuilder.setFile(fileBytes)

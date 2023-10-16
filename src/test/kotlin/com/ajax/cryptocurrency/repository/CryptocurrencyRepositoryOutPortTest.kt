@@ -1,7 +1,7 @@
 package com.ajax.cryptocurrency.repository
 
-import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepository
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import io.mockk.every
 import io.mockk.mockk
 import org.bson.types.ObjectId
@@ -24,68 +24,68 @@ import java.time.ZoneOffset
 @DataMongoTest
 @ExtendWith(SpringExtension::class)
 @ComponentScan("com/ajax/cryptocurrency/repository/impl")
-class CryptocurrencyRepositoryTest {
+class CryptocurrencyRepositoryOutPortTest {
 
-    private lateinit var mockRepository: CryptocurrencyRepository
+    private lateinit var mockRepository: CryptocurrencyRepositoryOutPort
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
-    private val cryptocurrencyDomainBTCPrice = CryptocurrencyDomain(id, "BTC", 12341f, time)
+    private val id: String = "63b346f12b207611fc867ff3"
+    private val domainCryptocurrencyBTCPrice = DomainCryptocurrency(id, "BTC", 12341f, time)
 
-    private val cryptocurrencyDomainList = listOf(
-        CryptocurrencyDomain(id, "BTC", 12341f, time),
-        CryptocurrencyDomain(id, "BTC", 23455f, time),
-        CryptocurrencyDomain(id, "ETH", 1200f, time),
-        CryptocurrencyDomain(id, "ETH", 1300f, time),
-        CryptocurrencyDomain(id, "ETH", 1400f, time),
-        CryptocurrencyDomain(id, "XRP", 200f, time),
-        CryptocurrencyDomain(id, "XRP", 300f, time),
-        CryptocurrencyDomain(id, "XRP", 520f, time)
+    private val domainCryptocurrencyLists = listOf(
+        DomainCryptocurrency(id, "BTC", 12341f, time),
+        DomainCryptocurrency(id, "BTC", 23455f, time),
+        DomainCryptocurrency(id, "ETH", 1200f, time),
+        DomainCryptocurrency(id, "ETH", 1300f, time),
+        DomainCryptocurrency(id, "ETH", 1400f, time),
+        DomainCryptocurrency(id, "XRP", 200f, time),
+        DomainCryptocurrency(id, "XRP", 300f, time),
+        DomainCryptocurrency(id, "XRP", 520f, time)
     )
 
     @BeforeEach
     fun setup() {
-        mockRepository = mockk<CryptocurrencyRepository>()
+        mockRepository = mockk<CryptocurrencyRepositoryOutPort>()
     }
 
     @Test
     fun saveTest() {
-        every { mockRepository.save(cryptocurrencyDomainBTCPrice) } returns Mono.just(cryptocurrencyDomainBTCPrice)
-        val setup = mockRepository.save(cryptocurrencyDomainBTCPrice)
+        every { mockRepository.save(domainCryptocurrencyBTCPrice) } returns Mono.just(domainCryptocurrencyBTCPrice)
+        val setup = mockRepository.save(domainCryptocurrencyBTCPrice)
         StepVerifier
             .create(setup)
-            .expectNext(cryptocurrencyDomainBTCPrice)
+            .expectNext(domainCryptocurrencyBTCPrice)
             .verifyComplete()
     }
 
     @Test
     fun findAllTest() {
-        every { mockRepository.findAll() } returns Flux.fromIterable(cryptocurrencyDomainList)
+        every { mockRepository.findAll() } returns Flux.fromIterable(domainCryptocurrencyLists)
         val setup = mockRepository.findAll()
         StepVerifier
             .create(setup)
-            .expectNextCount(cryptocurrencyDomainList.size.toLong())
+            .expectNextCount(domainCryptocurrencyLists.size.toLong())
             .verifyComplete()
     }
 
     @Test
     fun findMinMaxByNameTest() {
-        every { mockRepository.findMinMaxByName("BTC", -1) } returns Mono.just(cryptocurrencyDomainBTCPrice)
+        every { mockRepository.findMinMaxByName("BTC", -1) } returns Mono.just(domainCryptocurrencyBTCPrice)
         val setup = mockRepository.findMinMaxByName("BTC", -1)
         StepVerifier
             .create(setup)
-            .expectNext(cryptocurrencyDomainBTCPrice)
+            .expectNext(domainCryptocurrencyBTCPrice)
             .verifyComplete()
     }
 
     @Test
     fun findAllByTest() {
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        every { mockRepository.findAllBy(pageable) } returns Flux.fromIterable(cryptocurrencyDomainList)
+        every { mockRepository.findAllBy(pageable) } returns Flux.fromIterable(domainCryptocurrencyLists)
         val setup = mockRepository.findAllBy(pageable)
         StepVerifier
             .create(setup)
-            .expectNextCount(cryptocurrencyDomainList.size.toLong())
+            .expectNextCount(domainCryptocurrencyLists.size.toLong())
             .verifyComplete()
     }
 
@@ -93,7 +93,7 @@ class CryptocurrencyRepositoryTest {
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun findCryptocurrencyPriceByCryptocurrencyNameTest(cryptoName: String) {
         val pageable = PageRequest.of(0, 10, Sort.by("price"))
-        val sortedList = cryptocurrencyDomainList.filter { it.cryptocurrencyName == cryptoName }
+        val sortedList = domainCryptocurrencyLists.filter { it.cryptocurrencyName == cryptoName }
             .sortedBy { it.price }
         every { mockRepository.findCryptocurrencyPriceByCryptocurrencyName(cryptoName, pageable)
         } returns Flux.fromIterable(sortedList)

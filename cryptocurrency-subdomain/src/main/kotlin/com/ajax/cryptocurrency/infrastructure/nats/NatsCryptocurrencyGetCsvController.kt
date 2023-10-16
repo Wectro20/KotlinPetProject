@@ -4,7 +4,7 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.NatsSubject.GET_CSV_CRYPTOCURRENCY_SUBJECT
 import com.ajax.cryptocurrency.application.nats.NatsController
-import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyService
+import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
 import com.google.protobuf.ByteString
 import com.google.protobuf.Parser
 import io.nats.client.Connection
@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class NatsCryptocurrencyGetCsvController(
-    private val cryptocurrencyService: CryptocurrencyService,
+    private val cryptocurrencyServiceInPort: CryptocurrencyServiceInPort,
     override val connection: Connection
 ) : NatsController<CryptocurrencyRequest, CryptocurrencyResponse> {
 
@@ -22,7 +22,7 @@ class NatsCryptocurrencyGetCsvController(
     override val parser: Parser<CryptocurrencyRequest> = CryptocurrencyRequest.parser()
 
     override fun handler(request: CryptocurrencyRequest): Mono<CryptocurrencyResponse> {
-        return cryptocurrencyService.writeCsv(request.name.name)
+        return cryptocurrencyServiceInPort.writeCsv(request.name.name)
             .map { file -> ByteString.copyFrom(file.readBytes()) }
             .map { fileBytes ->
                 CryptocurrencyResponse.newBuilder()
