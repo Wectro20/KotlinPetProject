@@ -2,11 +2,11 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.config.TestConfig
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyPagesController
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -34,7 +34,7 @@ import java.time.ZoneOffset
 @ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyPagesControllerTest {
     @MockK
-    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     @Autowired
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
@@ -47,17 +47,17 @@ class NatsCryptocurrencyPagesControllerTest {
     private lateinit var controller: NatsCryptocurrencyPagesController
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
+    private val id: String = "63b346f12b207611fc867ff3"
 
-    private val cryptocurrencyDomainList = listOf(
-        CryptocurrencyDomain(id, "BTC", 12341f, time),
-        CryptocurrencyDomain(id, "BTC", 23455f, time),
-        CryptocurrencyDomain(id, "ETH", 1200f, time),
-        CryptocurrencyDomain(id, "ETH", 1300f, time),
-        CryptocurrencyDomain(id, "ETH", 1400f, time),
-        CryptocurrencyDomain(id, "XRP", 200f, time),
-        CryptocurrencyDomain(id, "XRP", 300f, time),
-        CryptocurrencyDomain(id, "XRP", 520f, time)
+    private val domainCryptocurrencyLists = listOf(
+        DomainCryptocurrency(id, "BTC", 12341f, time),
+        DomainCryptocurrency(id, "BTC", 23455f, time),
+        DomainCryptocurrency(id, "ETH", 1200f, time),
+        DomainCryptocurrency(id, "ETH", 1300f, time),
+        DomainCryptocurrency(id, "ETH", 1400f, time),
+        DomainCryptocurrency(id, "XRP", 200f, time),
+        DomainCryptocurrency(id, "XRP", 300f, time),
+        DomainCryptocurrency(id, "XRP", 520f, time)
     )
 
     @BeforeEach
@@ -75,7 +75,7 @@ class NatsCryptocurrencyPagesControllerTest {
     @ParameterizedTest
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun testHandler(cryptoName: String) {
-        val sortedList = cryptocurrencyDomainList.filter { it.cryptocurrencyName == cryptoName }
+        val sortedList = domainCryptocurrencyLists.filter { it.cryptocurrencyName == cryptoName }
 
         val request = CryptocurrencyRequest.newBuilder()
             .setPage(

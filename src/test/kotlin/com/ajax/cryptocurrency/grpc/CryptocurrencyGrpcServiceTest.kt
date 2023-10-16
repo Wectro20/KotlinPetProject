@@ -4,11 +4,11 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc
-import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.config.TestConfig
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
-import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryImpl
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
+import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryOutPortImpl
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import com.google.protobuf.ByteString
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
@@ -16,7 +16,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -41,32 +40,32 @@ class CryptocurrencyGrpcServiceTest(
 ) {
 
     @MockK
-    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryImpl
+    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPortImpl
 
     @Autowired
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
-    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     private lateinit var stub: ReactorCryptocurrencyServiceGrpc.ReactorCryptocurrencyServiceStub
     private lateinit var channel: ManagedChannel
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
-    private val cryptocurrencyDomainList = listOf(
-        CryptocurrencyDomain(id, "BTC", 12341f, time),
-        CryptocurrencyDomain(id, "BTC", 23455f, time),
-        CryptocurrencyDomain(id, "ETH", 1200f, time),
-        CryptocurrencyDomain(id, "ETH", 1300f, time),
-        CryptocurrencyDomain(id, "ETH", 1400f, time),
-        CryptocurrencyDomain(id, "XRP", 300f, time),
-        CryptocurrencyDomain(id, "XRP", 520f, time)
+    private val id: String = "63b346f12b207611fc867ff3"
+    private val domainCryptocurrencyLists = listOf(
+        DomainCryptocurrency(id, "BTC", 12341f, time),
+        DomainCryptocurrency(id, "BTC", 23455f, time),
+        DomainCryptocurrency(id, "ETH", 1200f, time),
+        DomainCryptocurrency(id, "ETH", 1300f, time),
+        DomainCryptocurrency(id, "ETH", 1400f, time),
+        DomainCryptocurrency(id, "XRP", 300f, time),
+        DomainCryptocurrency(id, "XRP", 520f, time)
     )
 
     private val cryptoMap = mapOf(
-        "BTC" to CryptocurrencyDomain(id, "BTC", 12341f, time),
-        "ETH" to CryptocurrencyDomain(id, "ETH", 12341f, time),
-        "XRP" to CryptocurrencyDomain(id, "XRP", 12341f, time)
+        "BTC" to DomainCryptocurrency(id, "BTC", 12341f, time),
+        "ETH" to DomainCryptocurrency(id, "ETH", 12341f, time),
+        "XRP" to DomainCryptocurrency(id, "XRP", 12341f, time)
     )
 
     @BeforeEach
@@ -76,14 +75,14 @@ class CryptocurrencyGrpcServiceTest(
             .forAddress("localhost", grpcPort)
             .usePlaintext()
             .build()
-        cryptocurrencyServiceImpl = CryptocurrencyServiceImpl(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
+        cryptocurrencyServiceImpl = CryptocurrencyService(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
     }
 
     @Test
     fun findAllCryptocurrenciesTest() {
         val request = CryptocurrencyRequest.newBuilder().build()
 
-        val responseList = Mono.just(cryptocurrencyDomainList.map {
+        val responseList = Mono.just(domainCryptocurrencyLists.map {
             cryptocurrencyConvertor.cryptocurrencyToProto(it)
         })
             .map { allCryptocurrency ->
@@ -94,7 +93,7 @@ class CryptocurrencyGrpcServiceTest(
                 }.build()
             }
 
-        val expectedCryptocurrencyList = cryptocurrencyDomainList.map {
+        val expectedCryptocurrencyList = domainCryptocurrencyLists.map {
             cryptocurrencyConvertor.cryptocurrencyToProto(it)
         }
 
@@ -166,7 +165,7 @@ class CryptocurrencyGrpcServiceTest(
                 .setPageSize(10)
         }.build()
 
-        val sortedList = cryptocurrencyDomainList.filter { it.cryptocurrencyName == cryptoName }
+        val sortedList = domainCryptocurrencyLists.filter { it.cryptocurrencyName == cryptoName }
 
         val responseList = Mono.just(sortedList.map {
             cryptocurrencyConvertor.cryptocurrencyToProto(it)

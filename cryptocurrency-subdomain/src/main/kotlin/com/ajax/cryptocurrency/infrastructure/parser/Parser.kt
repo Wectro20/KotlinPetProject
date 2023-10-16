@@ -1,10 +1,10 @@
 package com.ajax.cryptocurrency.infrastructure.parser
 
 import com.ajax.cryptocurrency.application.lib.ScheduledBackgroundJobStarter
-import com.ajax.cryptocurrency.application.ports.parser.ParserInterface
-import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepository
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
-import com.ajax.cryptocurrency.infrastructure.kafka.CryptocurrencyKafkaProducer
+import com.ajax.cryptocurrency.application.ports.ParserInterface
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
+import com.ajax.cryptocurrency.infrastructure.kafka.NotificationPublisherPublisher
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,8 +16,8 @@ import java.time.ZoneOffset
 
 @ScheduledBackgroundJobStarter(startDelay = 10000, period = 5000)
 class Parser(
-    private val cryptocurrencyRepository: CryptocurrencyRepository,
-    private val cryptocurrencyKafkaProducer: CryptocurrencyKafkaProducer,
+    private val cryptocurrencyRepositoryOutPort: CryptocurrencyRepositoryOutPort,
+    private val cryptocurrencyKafkaProducer: NotificationPublisherPublisher,
 ) : ParserInterface {
 
     override fun savePrices(cryptocurrencyName: String) {
@@ -32,16 +32,17 @@ class Parser(
                 val price: Float = jsonObject.getFloat("lprice")
 
                 val createdTimeStamp = OffsetDateTime.now(ZoneOffset.UTC)
-                val cryptocurrencyDomain = CryptocurrencyDomain(
+                val domainCryptocurrency = DomainCryptocurrency(
+                    id = null,
                     cryptocurrencyName = cryptocurrencyName,
                     price = price,
                     createdTime = createdTimeStamp.toLocalDateTime()
                 )
 
-                cryptocurrencyRepository.save(cryptocurrencyDomain)
+                cryptocurrencyRepositoryOutPort.save(domainCryptocurrency)
                     .doAfterTerminate {
-                        cryptocurrencyKafkaProducer.sendToKafka(
-                            cryptocurrencyDomain
+                        cryptocurrencyKafkaProducer.publishNotification(
+                            domainCryptocurrency
                         )
                     }.subscribe()
             }

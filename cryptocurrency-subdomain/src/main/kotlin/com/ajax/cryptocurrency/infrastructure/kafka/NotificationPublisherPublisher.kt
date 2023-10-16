@@ -2,9 +2,9 @@ package com.ajax.cryptocurrency.infrastructure.kafka
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.KafkaTopic
-import com.ajax.cryptocurrency.application.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.application.ports.kafka.KafkaProducer
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.application.ports.NotificationPublisher
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -13,17 +13,17 @@ import reactor.kafka.sender.SenderRecord
 
 
 @Service
-class CryptocurrencyKafkaProducer(
+class NotificationPublisherPublisher(
     private val cryptocurrencyKafkaSender: KafkaSender<String, CryptocurrencyOuterClass.Cryptocurrency>,
     private val cryptocurrencyConvertor: CryptocurrencyConvertor
-) : KafkaProducer<CryptocurrencyDomain> {
+) : NotificationPublisher<DomainCryptocurrency> {
     override val topic = KafkaTopic.ADD_CRYPTOCURRENCY_TOPIC
 
-    override fun sendToKafka(cryptocurrencyDomain: CryptocurrencyDomain) {
-        val cryptocurrencyProto = cryptocurrencyConvertor.cryptocurrencyToProto(cryptocurrencyDomain)
+    override fun publishNotification(domainCryptocurrency: DomainCryptocurrency) {
+        val cryptocurrencyProto = cryptocurrencyConvertor.cryptocurrencyToProto(domainCryptocurrency)
 
         val senderRecord = SenderRecord.create(
-            ProducerRecord(topic, cryptocurrencyDomain.id.toHexString(), cryptocurrencyProto),
+            ProducerRecord(topic, domainCryptocurrency.id, cryptocurrencyProto),
             null
         )
 

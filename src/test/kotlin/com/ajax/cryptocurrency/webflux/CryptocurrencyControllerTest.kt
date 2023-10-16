@@ -1,10 +1,8 @@
 package com.ajax.cryptocurrency.webflux;
 
 import com.ajax.cryptocurrency.CryptocurrencyApplication
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
-import com.ajax.cryptocurrency.infrastructure.mongo.entity.CryptocurrencyEntity
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
-import org.bson.types.ObjectId
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -35,28 +33,28 @@ class CryptocurrencyControllerTest {
     private lateinit var webTestClient: WebTestClient;
 
     @MockBean
-    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val expectedCsvFile = "src/test/resources/expected.csv"
-    private val id: ObjectId = ObjectId("63b346f12b207611fc867ff3")
+    private val id: String = "63b346f12b207611fc867ff3"
 
     private val list = listOf(
-        CryptocurrencyDomain(id, "BTC", 12341f, time),
-        CryptocurrencyDomain(id, "BTC", 23455f, time),
-        CryptocurrencyDomain(id, "ETH", 1200f, time),
-        CryptocurrencyDomain(id, "ETH", 1300f, time),
-        CryptocurrencyDomain(id, "ETH", 1400f, time),
-        CryptocurrencyDomain(id, "XRP", 200f, time),
-        CryptocurrencyDomain(id, "XRP", 300f, time),
-        CryptocurrencyDomain(id, "XRP", 520f, time)
+        DomainCryptocurrency(id, "BTC", 12341f, time),
+        DomainCryptocurrency(id, "BTC", 23455f, time),
+        DomainCryptocurrency(id, "ETH", 1200f, time),
+        DomainCryptocurrency(id, "ETH", 1300f, time),
+        DomainCryptocurrency(id, "ETH", 1400f, time),
+        DomainCryptocurrency(id, "XRP", 200f, time),
+        DomainCryptocurrency(id, "XRP", 300f, time),
+        DomainCryptocurrency(id, "XRP", 520f, time)
     )
 
     @ParameterizedTest
     @ValueSource(strings = ["BTC", "ETH", "XRP"])
     fun getPriceTests(crypto: String) {
-        val cryptocurrencyEntityPrice = CryptocurrencyEntity(id, crypto, 12341f, time)
-        val cryptoMono: Mono<CryptocurrencyEntity> = Mono.just(cryptocurrencyEntityPrice)
+        val cryptocurrencyEntityPrice = DomainCryptocurrency(id, crypto, 12341f, time)
+        val cryptoMono: Mono<DomainCryptocurrency> = Mono.just(cryptocurrencyEntityPrice)
 
         doReturn(cryptoMono).`when`(cryptocurrencyServiceImpl)
             .findMinMaxPriceByCryptocurrencyName(crypto, 1)

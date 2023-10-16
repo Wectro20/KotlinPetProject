@@ -1,27 +1,28 @@
-package com.ajax.cryptocurrency.application.convertproto
+package com.ajax.cryptocurrency.infrastructure.convertproto
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.Cryptocurrency
 import com.ajax.cryptocurrency.application.util.toLocalDateTime
 import com.ajax.cryptocurrency.application.util.toTimestamp
-import com.ajax.cryptocurrency.domain.CryptocurrencyDomain
+import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import org.springframework.stereotype.Component
 
 @Component
 class CryptocurrencyConvertor {
     fun cryptocurrencyToProto(
-        cryptocurrencyDomain: CryptocurrencyDomain
+        domainCryptocurrency: DomainCryptocurrency
     ) : Cryptocurrency {
         return Cryptocurrency.newBuilder()
-            .setCryptocurrencyName(cryptocurrencyDomain.cryptocurrencyName)
-            .setPrice(cryptocurrencyDomain.price)
-            .setCreatedTime(cryptocurrencyDomain.createdTime.toTimestamp())
+            .setCryptocurrencyName(domainCryptocurrency.cryptocurrencyName)
+            .setPrice(domainCryptocurrency.price)
+            .setCreatedTime(domainCryptocurrency.createdTime.toTimestamp())
             .build()
     }
 
     fun protoToCryptocurrency(
         cryptocurrencyProtoClass: Cryptocurrency
-    ) : CryptocurrencyDomain {
-        return CryptocurrencyDomain(
+    ) : DomainCryptocurrency {
+        return DomainCryptocurrency(
+            id = null,
             cryptocurrencyName = cryptocurrencyProtoClass.cryptocurrencyName,
             price = cryptocurrencyProtoClass.price,
             createdTime = cryptocurrencyProtoClass.createdTime.toLocalDateTime()

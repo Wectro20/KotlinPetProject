@@ -2,7 +2,7 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetCsvController
-import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyServiceImpl
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import com.google.protobuf.ByteString
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -19,7 +19,7 @@ import java.io.File
 @ExtendWith(MockKExtension::class)
 class NatsCryptocurrencyGetCsvControllerTest {
     @MockK
-    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyServiceImpl
+    private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
     @Suppress("UnusedPrivateProperty")
     @MockK
