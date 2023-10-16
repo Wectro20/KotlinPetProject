@@ -4,10 +4,11 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc
-import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
 import com.ajax.cryptocurrency.config.TestConfig
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryOutPortImpl
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
+import com.ajax.cryptocurrency.infrastructure.database.redis.RedisCryptocurrencyRepository
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import com.google.protobuf.ByteString
 import io.grpc.ManagedChannel
@@ -32,6 +33,7 @@ import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
+
 @SpringBootTest
 @ExtendWith(MockKExtension::class)
 @ContextConfiguration(classes = [TestConfig::class])
@@ -40,12 +42,14 @@ class CryptocurrencyGrpcServiceTest(
 ) {
 
     @MockK
-    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPortImpl
+    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPort
 
     @Autowired
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
+
+    private lateinit var redisCryptocurrencyRepository: RedisCryptocurrencyRepository
 
     private lateinit var stub: ReactorCryptocurrencyServiceGrpc.ReactorCryptocurrencyServiceStub
     private lateinit var channel: ManagedChannel
@@ -71,11 +75,16 @@ class CryptocurrencyGrpcServiceTest(
     @BeforeEach
     fun setup() {
         stub = mockk()
+        redisCryptocurrencyRepository = mockk()
         channel = ManagedChannelBuilder
             .forAddress("localhost", grpcPort)
             .usePlaintext()
             .build()
-        cryptocurrencyServiceImpl = CryptocurrencyService(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
+        cryptocurrencyServiceImpl = CryptocurrencyService(
+            cryptocurrencyRepository,
+            redisCryptocurrencyRepository,
+            listOf("BTC", "ETH", "XRP")
+        )
     }
 
     @Test

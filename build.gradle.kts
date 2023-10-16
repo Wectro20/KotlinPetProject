@@ -50,6 +50,7 @@ dependencies {
 	implementation("org.springframework.kafka:spring-kafka:3.0.11")
 	implementation("io.projectreactor.kafka:reactor-kafka:1.3.21")
 	implementation("io.confluent:kafka-protobuf-serializer:7.4.0")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:3.1.4")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.mockk:mockk:1.13.7")

@@ -4,7 +4,7 @@ import com.ajax.cryptocurrency.application.lib.ScheduledBackgroundJobStarter
 import com.ajax.cryptocurrency.application.ports.ParserInterface
 import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.infrastructure.kafka.NotificationPublisherPublisher
+import com.ajax.cryptocurrency.infrastructure.kafka.NotificationPublisher
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,7 +17,7 @@ import java.time.ZoneOffset
 @ScheduledBackgroundJobStarter(startDelay = 10000, period = 5000)
 class Parser(
     private val cryptocurrencyRepositoryOutPort: CryptocurrencyRepositoryOutPort,
-    private val cryptocurrencyKafkaProducer: NotificationPublisherPublisher,
+    private val cryptocurrencyKafkaProducer: NotificationPublisher,
 ) : ParserInterface {
 
     override fun savePrices(cryptocurrencyName: String) {

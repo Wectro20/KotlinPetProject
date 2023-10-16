@@ -1,5 +1,6 @@
 package com.ajax.cryptocurrency.infrastructure.webflux
 
+
 import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import jakarta.validation.constraints.Min
@@ -37,7 +38,6 @@ class CryptocurrencyController(private val cryptocurrencyServiceInPort: Cryptocu
         @RequestParam(defaultValue = "0") @Min(0) pageNumber: Int,
         @RequestParam(defaultValue = "10") @Min(1) size: Int
     ): Flux<DomainCryptocurrency> = cryptocurrencyServiceInPort.getCryptocurrencyPages(name, pageNumber, size)
-
 
     @GetMapping("/csv")
     fun downloadFile(
