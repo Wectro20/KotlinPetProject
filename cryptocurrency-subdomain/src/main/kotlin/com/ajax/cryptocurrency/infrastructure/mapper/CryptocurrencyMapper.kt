@@ -1,7 +1,7 @@
 package com.ajax.cryptocurrency.infrastructure.mapper
 
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.infrastructure.mongo.entity.CryptocurrencyEntity
+import com.ajax.cryptocurrency.infrastructure.database.mongo.entity.CryptocurrencyEntity
 import org.springframework.stereotype.Component
 
 @Component

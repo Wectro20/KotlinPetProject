@@ -1,11 +1,13 @@
 package com.ajax.cryptocurrency.service
 
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
+import com.ajax.cryptocurrency.infrastructure.database.redis.RedisCryptocurrencyRepository
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
-import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryOutPortImpl
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,9 +28,11 @@ import java.time.ZoneOffset
 @ExtendWith(MockKExtension::class)
 class CryptocurrencyServiceTest {
     @MockK
-    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPortImpl
+    private lateinit var cryptocurrencyRepository: CryptocurrencyRepositoryOutPort
 
     private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
+
+    private lateinit var cryptocurrencyRedisRepository: RedisCryptocurrencyRepository
 
     private val expectedCsvFile = "src/test/resources/expected.csv"
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
@@ -52,7 +56,12 @@ class CryptocurrencyServiceTest {
 
     @BeforeEach
     fun setup() {
-        cryptocurrencyServiceImpl = CryptocurrencyService(cryptocurrencyRepository, listOf("BTC", "ETH", "XRP"))
+        cryptocurrencyRedisRepository = mockk()
+        cryptocurrencyServiceImpl = CryptocurrencyService(
+            cryptocurrencyRepository,
+            cryptocurrencyRedisRepository,
+            listOf("BTC", "ETH", "XRP")
+        )
     }
 
     @ParameterizedTest

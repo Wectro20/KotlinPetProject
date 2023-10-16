@@ -1,10 +1,10 @@
 package com.ajax.cryptocurrency.infrastructure.parser
 
 import com.ajax.cryptocurrency.application.lib.ScheduledBackgroundJobStarter
-import com.ajax.cryptocurrency.application.ports.parser.ParserInterface
-import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
+import com.ajax.cryptocurrency.application.ports.ParserInterface
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.infrastructure.kafka.CryptocurrencyNotificationPublisher
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,9 +14,9 @@ import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@ScheduledBackgroundJobStarter(startDelay = 10000, period = 5000)
+@ScheduledBackgroundJobStarter(startDelay = 1000, period = 5000)
 class Parser(
-    private val cryptocurrencyRepositoryOutPort: CryptocurrencyRepositoryOutPort,
+    private val cryptocurrencyService: CryptocurrencyService,
     private val cryptocurrencyKafkaProducer: CryptocurrencyNotificationPublisher,
 ) : ParserInterface {
 
@@ -38,8 +38,7 @@ class Parser(
                     price = price,
                     createdTime = createdTimeStamp.toLocalDateTime()
                 )
-
-                cryptocurrencyRepositoryOutPort.save(domainCryptocurrency)
+                cryptocurrencyService.save(domainCryptocurrency)
                     .doAfterTerminate {
                         cryptocurrencyKafkaProducer.publishNotification(
                             domainCryptocurrency
