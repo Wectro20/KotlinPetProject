@@ -1,6 +1,5 @@
 package com.ajax.cryptocurrency.infrastructure.webflux
 
-
 import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import jakarta.validation.constraints.Min

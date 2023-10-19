@@ -2,11 +2,12 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.config.TestConfig
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetAllController
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
+import com.ajax.cryptocurrency.util.cryptocurrencyToProto
+import com.ajax.cryptocurrency.util.protoToCryptocurrency
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -16,21 +17,19 @@ import io.nats.client.Connection
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@SpringBootTest
 @ExtendWith(MockKExtension::class)
-@ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyGetAllControllerTest {
     @MockK
     private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
+
+    @MockK
+    private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     @Suppress("UnusedPrivateProperty")
     @MockK
@@ -38,9 +37,6 @@ class NatsCryptocurrencyGetAllControllerTest {
 
     @InjectMockKs
     private lateinit var controller: NatsCryptocurrencyGetAllController
-
-    @Autowired
-    private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     private val time = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
     private val id: String = "63b346f12b207611fc867ff3"
@@ -60,14 +56,22 @@ class NatsCryptocurrencyGetAllControllerTest {
     fun testHandler() {
         val request = CryptocurrencyRequest.newBuilder().build()
 
-        every { cryptocurrencyServiceImpl.findAll() } returns Flux.fromIterable(domainCryptocurrencyLists)
+        val serviceFindAllResponse = Flux.fromIterable(domainCryptocurrencyLists)
+
+        every { cryptocurrencyServiceImpl.findAll() } returns serviceFindAllResponse
+
+        domainCryptocurrencyLists.forEach { domainCryptocurrency ->
+            every {
+                cryptocurrencyConvertor.cryptocurrencyToProto(domainCryptocurrency)
+            } returns domainCryptocurrency.cryptocurrencyToProto()
+        }
 
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
             .assertNext { response ->
                 val cryptoListFromResponse = response.cryptocurrencyList.cryptocurrencyList.map {
-                    cryptocurrencyConvertor.protoToCryptocurrency(it)
+                    it.protoToCryptocurrency()
                 }
                 assertEquals(
                     domainCryptocurrencyLists.map { it.cryptocurrencyName },
@@ -84,5 +88,11 @@ class NatsCryptocurrencyGetAllControllerTest {
             .verifyComplete()
 
         verify { cryptocurrencyServiceImpl.findAll() }
+
+        verify {
+            domainCryptocurrencyLists.forEach {
+                cryptocurrencyConvertor.cryptocurrencyToProto(it)
+            }
+        }
     }
 }

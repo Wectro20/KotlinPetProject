@@ -1,6 +1,5 @@
 package com.ajax.cryptocurrency.repository
 
-
 import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import io.mockk.every
@@ -23,7 +22,6 @@ import java.time.ZoneOffset
 
 @DataMongoTest
 @ExtendWith(SpringExtension::class)
-@ComponentScan("com/ajax/cryptocurrency/repository/impl")
 class CryptocurrencyRepositoryOutPortTest {
 
     private lateinit var mockRepository: CryptocurrencyRepositoryOutPort

@@ -31,8 +31,11 @@ class CryptocurrencyService(
                     .doOnNext { cryptocurrencyRedisRepository.save(it).subscribe() }
             )
     }
-    override fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Mono<DomainCryptocurrency> =
+
+    override fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int):
+            Mono<DomainCryptocurrency> =
         cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
+
     override fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): Flux<DomainCryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
         return if (name == null)

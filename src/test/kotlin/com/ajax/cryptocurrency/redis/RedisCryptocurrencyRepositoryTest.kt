@@ -1,35 +1,31 @@
 package com.ajax.cryptocurrency.redis
 
-import com.ajax.cryptocurrency.config.TestConfig
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import com.ajax.cryptocurrency.infrastructure.database.mongo.entity.CryptocurrencyEntity
 import com.ajax.cryptocurrency.infrastructure.database.redis.RedisCryptocurrencyRepository
 import com.ajax.cryptocurrency.infrastructure.mapper.CryptocurrencyMapper
+import com.ajax.cryptocurrency.util.toDomain
+import com.ajax.cryptocurrency.util.toEntity
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.redis.core.ReactiveRedisTemplate
-import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@SpringBootTest
-@ContextConfiguration(classes = [TestConfig::class])
 class RedisCryptocurrencyRepositoryTest {
 
     private val reactiveRedisTemplate: ReactiveRedisTemplate<String, CryptocurrencyEntity> = mockk()
 
-    @Autowired
-    private lateinit var cryptocurrencyMapper: CryptocurrencyMapper
+    private var cryptocurrencyMapper: CryptocurrencyMapper = mockk()
 
     private lateinit var redisCryptocurrencyRepository: RedisCryptocurrencyRepository
 
@@ -53,6 +49,10 @@ class RedisCryptocurrencyRepositoryTest {
             reactiveRedisTemplate.opsForValue().set(eq(id), any())
         } returns Mono.just(true)
 
+        every {
+            cryptocurrencyMapper.toEntity(domainCryptocurrency)
+        } returns domainCryptocurrency.toEntity()
+
         val result = redisCryptocurrencyRepository.save(domainCryptocurrency)
 
         StepVerifier.create(result)
@@ -61,6 +61,10 @@ class RedisCryptocurrencyRepositoryTest {
 
         verify {
             reactiveRedisTemplate.opsForValue().set(eq(id), any())
+        }
+
+        verify {
+            cryptocurrencyMapper.toEntity(domainCryptocurrency)
         }
     }
 
@@ -76,6 +80,8 @@ class RedisCryptocurrencyRepositoryTest {
         every { reactiveRedisTemplate.scan(any()) } returns Flux.just(key1, key2)
         every { reactiveRedisTemplate.opsForValue().get(key1) } returns Mono.just(cryptocurrencyEntity1)
         every { reactiveRedisTemplate.opsForValue().get(key2) } returns Mono.just(cryptocurrencyEntity2)
+        every { cryptocurrencyMapper.toDomain(cryptocurrencyEntity1) } returns cryptocurrencyEntity1.toDomain()
+        every { cryptocurrencyMapper.toDomain(cryptocurrencyEntity2) } returns cryptocurrencyEntity2.toDomain()
 
         val result = redisCryptocurrencyRepository.findAll()
 
@@ -97,5 +103,7 @@ class RedisCryptocurrencyRepositoryTest {
         verify { reactiveRedisTemplate.scan(any()) }
         verify { reactiveRedisTemplate.opsForValue().get(key1) }
         verify { reactiveRedisTemplate.opsForValue().get(key2) }
+        verify { cryptocurrencyMapper.toDomain(cryptocurrencyEntity1) }
+        verify { cryptocurrencyMapper.toDomain(cryptocurrencyEntity2) }
     }
 }
