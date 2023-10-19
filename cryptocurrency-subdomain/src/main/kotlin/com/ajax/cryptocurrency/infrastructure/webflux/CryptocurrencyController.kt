@@ -38,7 +38,6 @@ class CryptocurrencyController(private val cryptocurrencyServiceInPort: Cryptocu
         @RequestParam(defaultValue = "10") @Min(1) size: Int
     ): Flux<DomainCryptocurrency> = cryptocurrencyServiceInPort.getCryptocurrencyPages(name, pageNumber, size)
 
-
     @GetMapping("/csv")
     fun downloadFile(
         @RequestParam(defaultValue = "cryptocurrency-report") fileName: String

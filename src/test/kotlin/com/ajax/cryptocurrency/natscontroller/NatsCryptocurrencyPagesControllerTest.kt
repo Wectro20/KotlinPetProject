@@ -2,11 +2,12 @@ package com.ajax.cryptocurrency.natscontroller
 
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.config.TestConfig
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyPagesController
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
+import com.ajax.cryptocurrency.util.cryptocurrencyToProto
+import com.ajax.cryptocurrency.util.protoToCryptocurrency
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -14,29 +15,23 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import io.nats.client.Connection
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@SpringBootTest
 @ExtendWith(MockKExtension::class)
-@ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyPagesControllerTest {
     @MockK
     private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
-    @Autowired
+    @MockK
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     @Suppress("UnusedPrivateProperty")
@@ -90,15 +85,17 @@ class NatsCryptocurrencyPagesControllerTest {
             cryptocurrencyServiceImpl.getCryptocurrencyPages(cryptoName, 1, 10)
         } returns Flux.fromIterable(sortedList)
 
+        sortedList.forEach {
+            every { cryptocurrencyConvertor.cryptocurrencyToProto(it) } returns it.cryptocurrencyToProto()
+        }
+
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
             .assertNext { response ->
                 val cryptoListFromResponse =
                     response.cryptocurrencyList.cryptocurrencyList.map {
-                        cryptocurrencyConvertor.protoToCryptocurrency(
-                            it
-                        )
+                        it.protoToCryptocurrency()
                     }
 
                 assertEquals(sortedList.map { it.cryptocurrencyName },
@@ -110,6 +107,12 @@ class NatsCryptocurrencyPagesControllerTest {
 
         verify {
             cryptocurrencyServiceImpl.getCryptocurrencyPages(cryptoName, 1, 10)
+        }
+
+        verify {
+            sortedList.forEach {
+                cryptocurrencyConvertor.cryptocurrencyToProto(it)
+            }
         }
     }
 }

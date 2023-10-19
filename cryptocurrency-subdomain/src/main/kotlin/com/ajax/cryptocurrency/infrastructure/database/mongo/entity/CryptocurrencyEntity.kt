@@ -1,4 +1,4 @@
-package com.ajax.cryptocurrency.infrastructure.mongo.entity
+package com.ajax.cryptocurrency.infrastructure.database.mongo.entity
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id

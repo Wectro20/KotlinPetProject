@@ -4,7 +4,6 @@ import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyReposi
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
 import io.mockk.every
 import io.mockk.mockk
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,7 +22,6 @@ import java.time.ZoneOffset
 
 @DataMongoTest
 @ExtendWith(SpringExtension::class)
-@ComponentScan("com/ajax/cryptocurrency/repository/impl")
 class CryptocurrencyRepositoryOutPortTest {
 
     private lateinit var mockRepository: CryptocurrencyRepositoryOutPort

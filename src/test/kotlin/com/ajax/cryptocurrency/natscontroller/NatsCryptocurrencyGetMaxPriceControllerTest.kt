@@ -3,38 +3,33 @@ package com.ajax.cryptocurrency.natscontroller
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyName
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
-import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.config.TestConfig
+import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
 import com.ajax.cryptocurrency.infrastructure.nats.NatsCryptocurrencyGetMaxPriceController
 import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
+import com.ajax.cryptocurrency.util.cryptocurrencyToProto
+import com.ajax.cryptocurrency.util.protoToCryptocurrency
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import io.nats.client.Connection
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ContextConfiguration
 import reactor.core.publisher.Mono
 import reactor.test.StepVerifier
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-@SpringBootTest
 @ExtendWith(MockKExtension::class)
-@ContextConfiguration(classes = [TestConfig::class])
 class NatsCryptocurrencyGetMaxPriceControllerTest {
     @MockK
     private lateinit var cryptocurrencyServiceImpl: CryptocurrencyService
 
-    @Autowired
+    @MockK
     private lateinit var cryptocurrencyConvertor: CryptocurrencyConvertor
 
     @Suppress("UnusedPrivateProperty")
@@ -65,11 +60,13 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
             cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(cryptoName, -1)
         } returns Mono.just(crypto)
 
+        every { cryptocurrencyConvertor.cryptocurrencyToProto(crypto) } returns crypto.cryptocurrencyToProto()
+
         val responseMono: Mono<CryptocurrencyOuterClass.CryptocurrencyResponse> = controller.handler(request)
 
         StepVerifier.create(responseMono)
             .assertNext { response ->
-                val cryptoFromResponse = cryptocurrencyConvertor.protoToCryptocurrency(response.cryptocurrency)
+                val cryptoFromResponse = response.cryptocurrency.protoToCryptocurrency()
 
                 assertEquals(crypto.cryptocurrencyName, cryptoFromResponse.cryptocurrencyName)
                 assertEquals(crypto.price, cryptoFromResponse.price)
@@ -78,5 +75,7 @@ class NatsCryptocurrencyGetMaxPriceControllerTest {
             .verifyComplete()
 
         verify { cryptocurrencyServiceImpl.findMinMaxPriceByCryptocurrencyName(cryptoName, -1) }
+
+        verify { cryptocurrencyConvertor.cryptocurrencyToProto(crypto) }
     }
 }

@@ -6,7 +6,7 @@ import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyRequest
 import com.ajax.cryptocurrency.CryptocurrencyOuterClass.CryptocurrencyResponse
 import com.ajax.cryptocurrency.ReactorCryptocurrencyServiceGrpc.CryptocurrencyServiceImplBase
 import com.ajax.cryptocurrency.infrastructure.convertproto.CryptocurrencyConvertor
-import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
+import com.ajax.cryptocurrency.infrastructure.service.CryptocurrencyService
 import com.ajax.cryptocurrency.infrastructure.shared.stream.SharedStream
 import com.google.protobuf.ByteString
 import org.springframework.stereotype.Component
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 
 @Component
 class CryptocurrencyGrpcService(
-    private val cryptocurrencyServiceInPort: CryptocurrencyServiceInPort,
+    private val cryptocurrencyServiceInPort: CryptocurrencyService,
     private val cryptocurrencyConvertor: CryptocurrencyConvertor,
     private val sharedStream: SharedStream
 ) : CryptocurrencyServiceImplBase() {

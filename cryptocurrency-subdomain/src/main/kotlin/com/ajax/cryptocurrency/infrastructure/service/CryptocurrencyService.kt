@@ -1,8 +1,9 @@
 package com.ajax.cryptocurrency.infrastructure.service
 
+import com.ajax.cryptocurrency.application.ports.repository.CryptocurrencyRepositoryOutPort
 import com.ajax.cryptocurrency.application.ports.service.CryptocurrencyServiceInPort
 import com.ajax.cryptocurrency.domain.DomainCryptocurrency
-import com.ajax.cryptocurrency.infrastructure.mongo.repository.CryptocurrencyRepositoryOutPortImpl
+import com.ajax.cryptocurrency.infrastructure.database.redis.RedisCryptocurrencyRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -13,13 +14,27 @@ import java.io.File
 
 @Service
 class CryptocurrencyService(
-    private val cryptocurrencyRepository: CryptocurrencyRepositoryOutPortImpl,
+    private val cryptocurrencyRepository: CryptocurrencyRepositoryOutPort,
+    private val cryptocurrencyRedisRepository: RedisCryptocurrencyRepository,
     @Value("\${cryptocurrency.name}") private val cryptocurrencies: List<String>,
 ) : CryptocurrencyServiceInPort {
-    override fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int): Mono<DomainCryptocurrency> =
-        cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
-    override fun findAll(): Flux<DomainCryptocurrency> = cryptocurrencyRepository.findAll()
+    override fun save(domainCryptocurrency: DomainCryptocurrency): Mono<DomainCryptocurrency> {
+        return cryptocurrencyRepository.save(domainCryptocurrency)
+            .doOnSuccess { cryptocurrency -> cryptocurrencyRedisRepository.save(cryptocurrency).subscribe() }
+    }
+
+    override fun findAll(): Flux<DomainCryptocurrency> {
+        return cryptocurrencyRedisRepository.findAll()
+            .switchIfEmpty(
+                cryptocurrencyRepository.findAll()
+                    .doOnNext { cryptocurrencyRedisRepository.save(it).subscribe() }
+            )
+    }
+
+    override fun findMinMaxPriceByCryptocurrencyName(name: String, sortOrder: Int):
+            Mono<DomainCryptocurrency> =
+        cryptocurrencyRepository.findMinMaxByName(name, sortOrder)
 
     override fun getCryptocurrencyPages(name: String?, pageNumber: Int, pageSize: Int): Flux<DomainCryptocurrency> {
         val pageable = PageRequest.of(pageNumber, pageSize, Sort.by("price"))
